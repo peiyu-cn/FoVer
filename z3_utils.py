@@ -1,14 +1,6 @@
 from typing import Any, Callable, Tuple
 
 from z3 import *
-#from enum import Enum
-#
-#class JudgeResult(Enum):
-#	FALSE = 0,
-#	TRUE = 1,
-#	SATISFIABLE = 2,
-#	CONTRADICT = 3,
-#	EXCEPTION = 4,
 
 def verify(s: Solver, expr):
 	assert s.check(expr) == sat # sanity check
@@ -24,24 +16,6 @@ def verify(s: Solver, expr):
 	s.pop()
 
 	return r1, r2
-
-#def judge(r1: CheckSatResult, r2: CheckSatResult) -> JudgeResult:
-#	if r1 == sat:
-#		if r2 == sat:
-#			return JudgeResult.SATISFIABLE
-#		elif r2 == unsat:
-#			return JudgeResult.TRUE
-#		else:
-#			return JudgeResult.EXCEPTION
-#	elif r1 == unsat:
-#		if r2 == sat:
-#			return JudgeResult.CONTRADICT
-#		elif r2 == unsat:
-#			return JudgeResult.FALSE
-#		else:
-#			return JudgeResult.EXCEPTION
-#	else:
-#		return JudgeResult.EXCEPTION
 
 def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 	if r1 == sat:
@@ -117,12 +91,7 @@ class Logic:
 	
 	@property
 	def assertion(self):
-		#return self._assertion
 		return self.question(self.answer)
-
-	#@assertion.setter
-	#def assertion(self, value):
-	#	self._assertion = value
 
 	def _add(self):
 		if not self._added:
