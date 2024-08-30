@@ -1,21 +1,37 @@
-# Begin imports
+# %% imports
 from z3 import *
 
 from z3_utils import LogicBase, Logic, QALogic
-# End imports
 
-# Begin demos
-## System:
+# %% [markdown] demos
+# ## Demo checklist:
+# 1. User message is in format: "Question: <question> Answer: <answer>".
+# 2. Function name.
+# 3. kwargs.
+# 4. Target description.
+# 5. Logic initialization.
+# 6. Function signatures.
+# 7. Function descriptions.
+# 8. Target function.
+# 9. Targets.
+# 10. Relation implementations.
+# 11. Relation implementation descriptions.
+# 12. Claims.
+# 13. Claim descriptions.
+# 14. Common knowledge.
+# %% System:
 """Extract logic to Z3 Python API from the given question-answer pair.
 You need to define a python function to store `definations`, `facts`, `world_knowledge`, and the main target (`answer`, `answer_type`, and `question`).
 `Logic` is a pre-defined wrapper class."""
-## Begin demo 1
-### User:
+
+# %% demo 1
+## User:
 """Question: Who was president of the U.S. when superconductivity was discovered?
-Answer: Superconductivity was discovered in 1911 .  
+Answer:
+Superconductivity was discovered in 1911 .  
 The President of the United States was William Howard Taft from 1909 to 1913.  
 So William Howard Taft was president of the U.S. when superconductivity was discovered"""
-### Assistant:
+## Assistant:
 def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(**kwargs):
 	"""
 	Superconductivity was discovered in 1911.
@@ -70,14 +86,15 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	l.common_knowledge = [
 		us == unitedstates, # U.S. is United States.
 	]
-## End demo 1
-## Begin demo 2
-### User:
+
+# %% demo 2
+## User:
 """Question: When did the war that Neil Armstrong served in end?
-Answer: Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war officially ended with an armistice agreement on July 27, 1953. 
+Answer:
+Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war officially ended with an armistice agreement on July 27, 1953. 
 
 So the final answer (the end date of the war) is: July 27, 1953."""
-### Assistant:
+## Assistant:
 def the_war_that_neilarmstrong_served_ended_on_july271953(kwargs):
 	"""
 	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
@@ -130,5 +147,3 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(kwargs):
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process leading to the conclusion.
 	l.common_knowledge = []
-## End demo 2
-# End demos
