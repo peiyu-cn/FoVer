@@ -1,6 +1,6 @@
 from typing import Any, Callable, Tuple
 
-from z3 import *
+from z3 import Solver, CheckSatResult, sat, unsat, unknown, Not, BoolRef, SortRef
 
 def verify(s: Solver, expr):
 	assert s.check(expr) == sat # sanity check
@@ -35,14 +35,85 @@ def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 	else:
 		return unknown
 
-class Logic:
-	def __init__(self, use_world_knowledge=True):
-		self.s = Solver()
-		self.use_world_knowledge = use_world_knowledge
+class LogicBase:
+	def __init__(self, use_common_knowledge=True, context=None):
+		self.s = Solver(ctx=context)
+		self.use_common_knowledge = use_common_knowledge
 		self._added = False
 
 	@property
+	def claims(self) -> list:
+		"""
+		Claims included in the text.
+		"""
+		return self._claims
+
+	@claims.setter
+	def claims(self, value: list):
+		self._claims = value
+
+	@property
+	def common_knowledge(self) -> list:
+		"""
+		World knowledge that is assumed to be true and supports the assertion.
+		"""
+		return self._common_knowledge
+
+	@common_knowledge.setter
+	def common_knowledge(self, value: list):
+		self._common_knowledge = value
+
+	@property
+	def assertion(self) -> BoolRef:
+		"""
+		Target conclusion to be verified.
+		"""
+		raise NotImplementedError
+
+	def _add(self) -> None:
+		"""
+		Add the premises to the solver.
+		"""
+		if not self._added:
+			self.s.add(self.claims)
+			if self.use_common_knowledge:
+				self.s.add(self.common_knowledge)
+			self._added = True
+
+	def verify(self):
+		"""
+		Verify the assertion.
+		"""
+		self._add()
+		return verify(self.s, self.assertion)
+
+	def judge(self):
+		"""
+		Judge the assertion.
+		"""
+		return judge(*self.verify())
+
+class Logic(LogicBase):
+	def __init__(self, use_common_knowledge=True, context=None):
+		super().__init__(use_common_knowledge, context)
+
+	@property
+	def assertion(self):
+		return self._assertion
+
+	@assertion.setter
+	def assertion(self, value: BoolRef):
+		self._assertion = value
+
+class QALogic(LogicBase):
+	def __init__(self, use_common_knowledge=True, context=None):
+		super().__init__(use_common_knowledge, context)
+
+	@property
 	def definations(self):
+		"""
+		Definations of defined relations.
+		"""
 		return self._definations
 
 	@definations.setter
@@ -50,23 +121,10 @@ class Logic:
 		self._definations = value
 
 	@property
-	def facts(self):
-		return self._facts
-
-	@facts.setter
-	def facts(self, value: list):
-		self._facts = value
-
-	@property
-	def world_knowledge(self):
-		return self._world_knowledge
-
-	@world_knowledge.setter
-	def world_knowledge(self, value: list):
-		self._world_knowledge = value
-
-	@property
 	def answer(self):
+		"""
+		Answer term of the question.
+		"""
 		return self._answer
 
 	@answer.setter
@@ -74,7 +132,10 @@ class Logic:
 		self._answer = value
 
 	@property
-	def answer_type(self):
+	def answer_type(self) -> SortRef:
+		"""
+		Type of the answer term.
+		"""
 		return self._answer_type
 
 	@answer_type.setter
@@ -82,11 +143,14 @@ class Logic:
 		self._answer_type = value
 
 	@property
-	def question(self):
+	def question(self) -> Callable[[Any], BoolRef]:
+		"""
+		Target question.
+		"""
 		return self._question
 
 	@question.setter
-	def question(self, value: Callable[[Any], BoolRef]):
+	def question(self, value):
 		self._question = value
 	
 	@property
@@ -96,14 +160,7 @@ class Logic:
 	def _add(self):
 		if not self._added:
 			self.s.add(self.definations)
-			self.s.add(self.facts)
-			if self.use_world_knowledge:
-				self.s.add(self.world_knowledge)
+			self.s.add(self.claims)
+			if self.use_common_knowledge:
+				self.s.add(self.common_knowledge)
 			self._added = True
-
-	def verify(self):
-		self._add()
-		return verify(self.s, self.assertion)
-
-	def judge(self):
-		return judge(*self.verify())
