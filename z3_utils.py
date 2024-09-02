@@ -41,25 +41,25 @@ class LogicBase:
 		self._added = False
 
 	@property
-	def claims(self) -> list:
+	def claims(self) -> list[Tuple[Any, str]]:
 		"""
 		Claims included in the text.
 		"""
 		return self._claims
 
 	@claims.setter
-	def claims(self, value: list):
+	def claims(self, value: list[Tuple[Any, str]]):
 		self._claims = value
 
 	@property
-	def assumptions(self) -> list:
+	def assumptions(self) -> list[Tuple[Any, str]]:
 		"""
 		Unstated assumptions that are necessary to the assertion.
 		"""
 		return self._assumptions
 
 	@assumptions.setter
-	def assumptions(self, value: list):
+	def assumptions(self, value: list[Tuple[Any, str]]):
 		self._assumptions = value
 
 	@property
@@ -74,9 +74,12 @@ class LogicBase:
 		Add the premises to the solver.
 		"""
 		if not self._added:
-			self.s.add(self.claims)
-			self.s.add(self.assumptions)
+			self.__add(self.claims)
+			self.__add(self.assumptions)
 			self._added = True
+
+	def __add(self, exprs: list[Tuple[Any, str]]) -> None:
+		self.s.add([expr for expr, _ in exprs])
 
 	def verify(self):
 		"""
@@ -115,7 +118,7 @@ class QALogic(LogicBase):
 		return self._definations
 
 	@definations.setter
-	def definations(self, value: list):
+	def definations(self, value: list[Tuple[Any, str]]):
 		self._definations = value
 
 	@property
@@ -157,7 +160,7 @@ class QALogic(LogicBase):
 
 	def _add(self):
 		if not self._added:
-			self.s.add(self.definations)
-			self.s.add(self.claims)
-			self.s.add(self.assumptions)
+			self.__add(self.definations)
+			self.__add(self.claims)
+			self.__add(self.assumptions)
 			self._added = True

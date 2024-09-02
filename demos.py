@@ -74,17 +74,22 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 
 	#  Relation Definitions
 	l.definations = [
-		# A person was president when an event happened if and only if the event happened in the year that person was president.
-		ForAll([n, e, r], president_of_when_event(n, r, e) == Exists([i], And(happen_in(e) == i, president_of_when(n, r, i)))),
+		(
+			ForAll([n, e, r], president_of_when_event(n, r, e) == Exists([i], And(happen_in(e) == i, president_of_when(n, r, i)))),
+			"A person was president when an event happened if and only if the event happened in the year that person was president."
+		),
 	]
 	#  Claims from text
 	l.claims = [
-		happen_in(discover_superconductivity) == 1911, # Superconductivity was discovered in 1911.
-		ForAll([i], (president_of_when(williamhowardtaft, unitedstates, i)) == And(i >= 1909, i <= 1913)), # WHT was president from 1909 to 1913.
+		(happen_in(discover_superconductivity) == 1911, "Superconductivity was discovered in 1911."),
+		(
+			ForAll([i], (president_of_when(williamhowardtaft, unitedstates, i)) == And(i >= 1909, i <= 1913)),
+			"William Howard Taft was president from 1909 to 1913.",
+		),
 	]
 	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
 	l.assumptions = [
-		us == unitedstates, # U.S. is United States.
+		(us == unitedstates, "U.S. is United States."),
 	]
 
 	return l
@@ -138,14 +143,16 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(kwargs):
 
 	#  Relation Definitions
 	l.definations = [
-		# The war that a person served in ended on a date if and only if the person served in that war and the war ended on that date.
-		ForAll([n, d], (war_served_end_on(n) == d) == Exists([w], And(serve_in(n) == w, war_end_on(w) == d))),
+		(
+			ForAll([n, d], (war_served_end_on(n) == d) == Exists([w], And(serve_in(n) == w, war_end_on(w) == d))),
+			"The war that a person served in ended on a date if and only if the person served in that war and the war ended on that date."
+		),
 	]
 	#  Claims from text
 	l.claims = [
-		serve_in(neilarmstrong) == koreanwar, # Neil Armstrong served in the Korean War.
-		ForAll([i], (war_in(koreanwar, i)) == And(i >= 1950, i <= 1953)), # Korean War lasted from 1950 to 1953.
-		war_end_on(koreanwar) == july271953, # Korean War ended on July 27, 1953.
+		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
+		(ForAll([i], (war_in(koreanwar, i)) == And(i >= 1950, i <= 1953)), "Korean War lasted from 1950 to 1953."),
+		(war_end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
 	]
 	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
 	l.assumptions = []
