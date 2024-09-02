@@ -59,7 +59,7 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	williamhowardtaft = Const('William Howard Taft', Name)
 	us = Const('U.S.', Region)
 	unitedstates = Const('United States', Region)
-	
+
 	# Target.
 	l.answer = williamhowardtaft
 	l.answer_type = Name
@@ -86,6 +86,8 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	l.common_knowledge = [
 		us == unitedstates, # U.S. is United States.
 	]
+
+	return l
 
 # %% demo 2
 ## User:
@@ -147,3 +149,5 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(kwargs):
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process leading to the conclusion.
 	l.common_knowledge = []
+
+	return l
