@@ -82,8 +82,8 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 		happen_in(discover_superconductivity) == 1911, # Superconductivity was discovered in 1911.
 		ForAll([i], (president_of_when(williamhowardtaft, unitedstates, i)) == And(i >= 1909, i <= 1913)), # WHT was president from 1909 to 1913.
 	]
-	#  Common knowledge that I know to be true and that support the reasoning process leading to the conclusion.
-	l.common_knowledge = [
+	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
+	l.assumptions = [
 		us == unitedstates, # U.S. is United States.
 	]
 
@@ -147,7 +147,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(kwargs):
 		ForAll([i], (war_in(koreanwar, i)) == And(i >= 1950, i <= 1953)), # Korean War lasted from 1950 to 1953.
 		war_end_on(koreanwar) == july271953, # Korean War ended on July 27, 1953.
 	]
-	#  Common knowledge that I know to be true and that support the reasoning process leading to the conclusion.
-	l.common_knowledge = []
+	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
+	l.assumptions = []
 
 	return l

@@ -36,9 +36,8 @@ def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 		return unknown
 
 class LogicBase:
-	def __init__(self, use_common_knowledge=True, context=None):
+	def __init__(self, context=None):
 		self.s = Solver(ctx=context)
-		self.use_common_knowledge = use_common_knowledge
 		self._added = False
 
 	@property
@@ -53,15 +52,15 @@ class LogicBase:
 		self._claims = value
 
 	@property
-	def common_knowledge(self) -> list:
+	def assumptions(self) -> list:
 		"""
-		World knowledge that is assumed to be true and supports the assertion.
+		Unstated assumptions that are necessary to the assertion.
 		"""
-		return self._common_knowledge
+		return self._assumptions
 
-	@common_knowledge.setter
-	def common_knowledge(self, value: list):
-		self._common_knowledge = value
+	@assumptions.setter
+	def assumptions(self, value: list):
+		self._assumptions = value
 
 	@property
 	def assertion(self) -> BoolRef:
@@ -76,8 +75,7 @@ class LogicBase:
 		"""
 		if not self._added:
 			self.s.add(self.claims)
-			if self.use_common_knowledge:
-				self.s.add(self.common_knowledge)
+			self.s.add(self.assumptions)
 			self._added = True
 
 	def verify(self):
@@ -94,8 +92,8 @@ class LogicBase:
 		return judge(*self.verify())
 
 class Logic(LogicBase):
-	def __init__(self, use_common_knowledge=True, context=None):
-		super().__init__(use_common_knowledge, context)
+	def __init__(self, context=None):
+		super().__init__(context)
 
 	@property
 	def assertion(self):
@@ -106,8 +104,8 @@ class Logic(LogicBase):
 		self._assertion = value
 
 class QALogic(LogicBase):
-	def __init__(self, use_common_knowledge=True, context=None):
-		super().__init__(use_common_knowledge, context)
+	def __init__(self, context=None):
+		super().__init__(context)
 
 	@property
 	def definations(self):
@@ -161,6 +159,5 @@ class QALogic(LogicBase):
 		if not self._added:
 			self.s.add(self.definations)
 			self.s.add(self.claims)
-			if self.use_common_knowledge:
-				self.s.add(self.common_knowledge)
+			self.s.add(self.assumptions)
 			self._added = True
