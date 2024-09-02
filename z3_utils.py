@@ -29,8 +29,9 @@ def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 		return unknown
 
 class LogicBase:
-	def __init__(self, context=None):
-		self.s = Solver(ctx=context)
+	def __init__(self, use_common_knowledge=False, **kwargs):
+		self.s = Solver(**kwargs)
+		self.use_common_knowledge = use_common_knowledge
 		self._added = False
 
 	@property
@@ -45,15 +46,15 @@ class LogicBase:
 		self._claims = value
 
 	@property
-	def assumptions(self) -> list[Tuple[Any, str]]:
+	def common_knowledge(self) -> list[Tuple[Any, str]]:
 		"""
-		Unstated assumptions that are necessary to the assertion.
+		World knowledge that are assumed to be true and that support the assertion.
 		"""
-		return self._assumptions
+		return self._common_knowledge
 
-	@assumptions.setter
-	def assumptions(self, value: list[Tuple[Any, str]]):
-		self._assumptions = value
+	@common_knowledge.setter
+	def common_knowledge(self, value: list[Tuple[Any, str]]):
+		self._common_knowledge = value
 
 	@property
 	def assertion(self) -> BoolRef:
@@ -68,7 +69,8 @@ class LogicBase:
 		"""
 		if not self._added:
 			self._add2(self.claims)
-			self._add2(self.assumptions)
+			if self.use_common_knowledge:
+				self._add2(self.common_knowledge)
 			self._added = True
 
 	def _add2(self, exprs: list[Tuple[Any, str]]) -> None:
@@ -88,8 +90,8 @@ class LogicBase:
 		return judge(*self.verify())
 
 class Logic(LogicBase):
-	def __init__(self, context=None):
-		super().__init__(context)
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
 
 	@property
 	def assertion(self):
@@ -100,8 +102,8 @@ class Logic(LogicBase):
 		self._assertion = value
 
 class QALogic(LogicBase):
-	def __init__(self, context=None):
-		super().__init__(context)
+	def __init__(self, use_common_knowledge=False, **kwargs):
+		super().__init__(use_common_knowledge, **kwargs)
 
 	@property
 	def definations(self):
@@ -155,5 +157,6 @@ class QALogic(LogicBase):
 		if not self._added:
 			self._add2(self.definations)
 			self._add2(self.claims)
-			self._add2(self.assumptions)
+			if self.use_common_knowledge:
+				self._add2(self.common_knowledge)
 			self._added = True

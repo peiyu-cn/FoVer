@@ -87,8 +87,8 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 			"William Howard Taft was president from 1909 to 1913.",
 		),
 	]
-	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
-	l.assumptions = [
+	#  Common knowledge that I know to be true and that support the reasoning process.
+	l.common_knowledge = [
 		(us == unitedstates, "U.S. is United States."),
 	]
 
@@ -154,8 +154,8 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 			"Woodrow Wilson was president from 1913 to 1921.",
 		),
 	]
-	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
-	l.assumptions = [
+	#  Common knowledge that I know to be true and that support the reasoning process.
+	l.common_knowledge = [
 		(us == unitedstates, "U.S. is United States."),
 	]
 
@@ -221,7 +221,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 		(ForAll([i], (war_in(koreanwar, i)) == And(i >= 1950, i <= 1953)), "Korean War lasted from 1950 to 1953."),
 		(war_end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
 	]
-	#  Unstated assumptions that are necessary for the reasoning in the text, regardless of whether they are true or not.
-	l.assumptions = []
+	#  Common knowledge that I know to be true and that support the reasoning process.
+	l.common_knowledge = []
 
 	return l
