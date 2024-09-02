@@ -102,7 +102,7 @@ Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war
 
 So the final answer (the end date of the war) is: July 27, 1953."""
 ## Assistant:
-def the_war_that_neilarmstrong_served_ended_on_july271953(kwargs):
+def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 	"""
 	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
 	The war officially ended with an armistice agreement on July 27, 1953.

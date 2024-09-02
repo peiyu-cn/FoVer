@@ -3,17 +3,10 @@ from typing import Any, Callable, Tuple
 from z3 import Solver, CheckSatResult, sat, unsat, unknown, Not, BoolRef, SortRef
 
 def verify(s: Solver, expr):
-	assert s.check(expr) == sat # sanity check
+	assert s.check() == sat # sanity check
 
-	s.push()
-	s.add(expr)
-	r1 = s.check()
-	s.pop()
-
-	s.push()
-	s.add(Not(expr))
-	r2 = s.check()
-	s.pop()
+	r1 = s.check(expr)
+	r2 = s.check(Not(expr))
 
 	return r1, r2
 
@@ -74,11 +67,11 @@ class LogicBase:
 		Add the premises to the solver.
 		"""
 		if not self._added:
-			self.__add(self.claims)
-			self.__add(self.assumptions)
+			self._add2(self.claims)
+			self._add2(self.assumptions)
 			self._added = True
 
-	def __add(self, exprs: list[Tuple[Any, str]]) -> None:
+	def _add2(self, exprs: list[Tuple[Any, str]]) -> None:
 		self.s.add([expr for expr, _ in exprs])
 
 	def verify(self):
@@ -160,7 +153,7 @@ class QALogic(LogicBase):
 
 	def _add(self):
 		if not self._added:
-			self.__add(self.definations)
-			self.__add(self.claims)
-			self.__add(self.assumptions)
+			self._add2(self.definations)
+			self._add2(self.claims)
+			self._add2(self.assumptions)
 			self._added = True
