@@ -1,5 +1,5 @@
 # %% imports
-from z3 import *
+from z3 import * # type: ignore
 
 from z3_utils import LogicBase, Logic, QALogic
 
@@ -36,7 +36,7 @@ Superconductivity was discovered in 1911 .
 The President of the United States was William Howard Taft from 1909 to 1913.  
 So William Howard Taft was president of the U.S. when superconductivity was discovered"""
 ## Assistant:
-def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(**kwargs):
+def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic:
 	"""
 	Superconductivity was discovered in 1911.
 	The President of the United States was William Howard Taft from 1909 to 1913.
@@ -104,7 +104,7 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 Answer:
 Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes. Woodrow Wilson was president of the United States from 1913 to 1921. So the final answer (the name of the president) is: Woodrow Wilson."""
 ## Assistant:
-def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs):
+def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic:
 	"""
 	Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes.
 	Woodrow Wilson was president of the United States from 1913 to 1921.
@@ -173,7 +173,7 @@ Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war
 
 So the final answer (the end date of the war) is: July 27, 1953."""
 ## Assistant:
-def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
+def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic:
 	"""
 	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
 	The war officially ended with an armistice agreement on July 27, 1953.
@@ -245,7 +245,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 Q: Which is true based on the above statement?
 A. Mark went to the gym with his teacher Tony last night."""
 ## Assistant:
-def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
+def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs) -> Logic:
 	"""
 	Last night, Mark either went to play in the gym or visited his teacher Tony.
 	If Mark drove last night, he didn't go to play in the gym.
@@ -359,7 +359,7 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
 		"Mark went to the gym with his teacher Tony last night."
 	)
 
-	# Target 2.
+	# Target 2. # TODO: pick only one target when copying, remember to add return statement.
 	l.assertion = did_to(mark, tony, visittony), "Mark visited his teacher Tony last night."
 
 	# Target 3.
@@ -367,5 +367,60 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
 
 	# Target 4.
 	l.assertion = Not(at_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."
+
+	return l
+
+# %% demo 4
+# converted NLI
+# from `QA2NLI/train.txt` line 4. label: not entailed
+## User:
+"""Premises: A, B, and C are three balls, one is red, one is blue, and the other is yellow. C is bigger than the yellow ball, A and the blue ball are not the same size, and the blue ball is smaller than C
+Conslusion: A is red, B is blue, C is yellow"""
+## Assistant:
+def a_red_b_blue_c_yellow(**kwargs) -> Logic:
+	"""
+	Premises:
+	A, B, and C are three balls, one is red, one is blue, and the other is yellow.
+	C is bigger than the yellow ball
+	A and the blue ball are not the same size
+	the blue ball is smaller than C.
+
+	Conclusion:
+	A is red, B is blue, C is yellow.
+	"""
+	# Initialize an instance of Logic with given arguments.
+	l = Logic(**kwargs)
+
+	# Define types.
+	Ball, (a, b, c) = EnumSort('Ball', ['A', 'B', 'C']) # A, B, C are three balls. # This must be an enum because there are and there are only 3 balls, which are different from one another.
+	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # This must be an enum so that Z3 knows that these 3 colors are different.
+	# Define functions.
+	color = Function('color', Ball, Color) # (Ball) -> Color, Ball is Color.
+	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int.
+
+	# Arrange instances.
+
+	# Implementations.
+	#  Local placeholders that will be used by quantifiers.
+	b1 = Const('b1', Ball)
+
+	#  Relation Definitions
+	l.definations = []
+
+	#  Claims from text
+	l.claims = [
+		(Exists([b1], color(b1) == red), "One ball is red."),
+		(Exists([b1], color(b1) == blue), "One ball is blue."),
+		(Exists([b1], color(b1) == yellow), "One ball is yellow."),
+		(ForAll([b1], Implies(color(b1) == yellow, size(c) > size(b1))), "C is bigger than the yellow ball."),
+		(ForAll([b1], Implies(color(b1) == blue, size(a) != size(b1))), "A and the blue ball are not the same size."),
+		(ForAll([b1], Implies(color(b1) == blue, size(b1) < size(c))), "The blue ball is smaller than C."),
+	]
+
+	#  Common knowledge that I know to be true and that support the reasoning process.
+	l.common_knowledge = []
+
+	# Target.
+	l.assertion = And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow."
 
 	return l

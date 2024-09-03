@@ -1,6 +1,6 @@
 from typing import Any, Callable, Tuple
 
-from z3 import Solver, CheckSatResult, sat, unsat, unknown, Not, BoolRef, SortRef
+from z3 import * # type: ignore
 
 def verify(s: Solver, expr):
 	assert s.check() == sat # sanity check
@@ -100,6 +100,25 @@ class LogicBase:
 		Judge the assertion.
 		"""
 		return judge(*self.verify())
+
+	def to_conjuction(self):
+		"""
+		Get all added expressions in the solver as a conjunction.
+		"""
+		self._add()
+		return And(*self.s.assertions())
+
+	def simplify(self):
+		"""
+		Simplify the premises.
+		"""
+		return simplify(self.to_conjuction())
+
+	def solve(self):
+		"""
+		Solve the premises.
+		"""
+		return solve(self.to_conjuction())
 
 class Logic(LogicBase):
 	def __init__(self, **kwargs):
