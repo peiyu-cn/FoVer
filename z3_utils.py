@@ -35,6 +35,17 @@ class LogicBase:
 		self._added = False
 
 	@property
+	def definations(self):
+		"""
+		Definations of defined relations.
+		"""
+		return self._definations
+
+	@definations.setter
+	def definations(self, value: list[Tuple[Any, str]]):
+		self._definations = value
+
+	@property
 	def claims(self) -> list[Tuple[Any, str]]:
 		"""
 		Claims included in the text.
@@ -68,6 +79,7 @@ class LogicBase:
 		Add the premises to the solver.
 		"""
 		if not self._added:
+			self._add2(self.definations)
 			self._add2(self.claims)
 			if self.use_common_knowledge:
 				self._add2(self.common_knowledge)
@@ -94,27 +106,16 @@ class Logic(LogicBase):
 		super().__init__(**kwargs)
 
 	@property
-	def assertion(self):
+	def assertion(self) -> BoolRef:
 		return self._assertion
 
 	@assertion.setter
-	def assertion(self, value: BoolRef):
+	def assertion(self, value):
 		self._assertion = value
 
 class QALogic(LogicBase):
 	def __init__(self, use_common_knowledge=False, **kwargs):
 		super().__init__(use_common_knowledge, **kwargs)
-
-	@property
-	def definations(self):
-		"""
-		Definations of defined relations.
-		"""
-		return self._definations
-
-	@definations.setter
-	def definations(self, value: list[Tuple[Any, str]]):
-		self._definations = value
 
 	@property
 	def answer(self):
@@ -152,11 +153,3 @@ class QALogic(LogicBase):
 	@property
 	def assertion(self):
 		return self.question(self.answer)
-
-	def _add(self):
-		if not self._added:
-			self._add2(self.definations)
-			self._add2(self.claims)
-			if self.use_common_knowledge:
-				self._add2(self.common_knowledge)
-			self._added = True

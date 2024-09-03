@@ -24,6 +24,10 @@ from z3_utils import LogicBase, Logic, QALogic
 You need to define a python function to store `definations`, `facts`, `world_knowledge`, and the main target (`answer`, `answer_type`, and `question`).
 `Logic` is a pre-defined wrapper class."""
 
+# %% [markdown] Bamboogle demos
+# ## Bamboogle demos
+# 2-hop QA
+
 # %% demo 1
 ## User:
 """Question: Who was president of the U.S. when superconductivity was discovered?
@@ -223,5 +227,141 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
 	l.common_knowledge = []
+
+	return l
+
+# %% [markdown] LogiQA 2.0 domos
+# ## LogiQA 2.0 demos
+# From LogiQA 2.0 (demo in the paper) (original multiple choice)
+# 
+# Last night, Mark either went to play in the gym or visited his teacher Tony. If Mark drove last night, he didn't go to play in the gym. Mark would go visit his teacher Tony only if he and his teacher had an appointment. In fact, Mark had no appointment with his teacher Tony in advance.
+# Q: Which is true based on the above statement?
+# A. Mark went to the gym with his teacher Tony last night.
+# B. Mark visited his teacher Tony last night.
+# C. Mark didn't drive last night.
+# D. Mark didn't go to the gym last night.
+
+# %% demo 3
+# one choice
+## User:
+def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
+	"""
+	Last night, Mark either went to play in the gym or visited his teacher Tony.
+	If Mark drove last night, he didn't go to play in the gym.
+	Mark would go visit his teacher Tony only if he and his teacher had an appointment.
+	In fact, Mark had no appointment with his teacher Tony in advance.
+	
+	Target: Mark went to the gym with his teacher Tony last night.
+	"""
+	# Initialize an instance of QALogic with given arguments.
+	l = Logic(**kwargs)
+
+	# Define types.
+	Name = DeclareSort('Name')
+	Action = DeclareSort('Action') # Action may contain names, places, and times.
+	Place = DeclareSort('Place')
+	Time = DeclareSort('Time')
+	# Define functions.
+	did = Function('did', Name, Action, BoolSort()) # (Name, Action) -> Bool, Name did Action.
+	did_with = Function('did-with', Name, Name, Action, BoolSort()) # (Name, Name, Action) -> Bool, Name did Action with Name.
+	did_to = Function('did-to', Name, Name, Action, BoolSort()) # (Name, Name, Action) -> Bool, Name did Action to Name.
+	did_at = Function('did-at', Name, Action, Place, BoolSort()) # (Name, Action, Place) -> Bool, Name did Action at Place.
+	did_when = Function('did-when', Name, Action, Time, BoolSort()) # (Name, Action, Time) -> Bool, Name did Action when Time.
+	at_when = Function('at-when', Name, Place, Time, BoolSort()) # (Name, Place, Time) -> Bool, Name at Place when Time.
+
+	# Arrange instances.
+	mark = Const('Mark', Name)
+	tony = Const('Tony', Name)
+	gym = Const('gym', Place)
+	playinthegym = Const('play in the gym', Action)
+	visittony = Const('visit Tony', Action)
+	drive = Const('drive', Action)
+	appointment = Const('have appointment', Action)
+	lastnight = Const('last night', Time)
+
+	# Implementations.
+	#  Local placeholders that will be used by quantifiers.
+	n1, n2 = Consts('n1 n2', Name)
+	a = Const('a', Action)
+	p1, p2 = Consts('p1 p2', Place)
+	t = Const('t', Time)
+
+	#  Relation Definitions
+	l.definations = [
+		# relations of 'did'
+		(
+			ForAll([n1, n2, a], Implies(did_with(n1, n2, a), did(n1, a))),
+			"If a person did an action with another person, then that person did that action."
+		),
+		(
+			ForAll([n1, n2, a], Implies(did_to(n1, n2, a), did(n1, a))),
+			"If a person did an action to another person, then that person did that action."
+		),
+		(
+			ForAll([n1, a, p1], Implies(did_at(n1, a, p1), did(n1, a))),
+			"If a person did an action at a place, then that person did that action."
+		),
+		(
+			ForAll([n1, a, t], Implies(did_when(n1, a, t), did(n1, a))),
+			"If a person did an action when a time, then that person did that action."
+		),
+		# relations of 'did-with'
+		(
+			ForAll([n1, n2, a], did_with(n1, n2, a) == did_with(n2, n1, a)),
+			"If a person did an action with another person, then the other person did that action with the person."
+		),
+		# relations of 'at-when'
+		(
+			ForAll([n1, p1, t], Implies(at_when(n1, p1, t), 
+				ForAll([p2], (p2 == p1) == at_when(n1, p2, t)))),
+			"If a person was at a place when a time, then the person was at only that place when that time."
+		),
+		(
+			ForAll([n1, a, p1, t], Implies(And(did_at(n1, a, p1), did_when(n1, a, t)), at_when(n1, p1, t))),
+		  	"If a person did an action at a place and when a time, then the person was at that place when that time."
+		)
+	]
+	#  Claims from text
+	l.claims = [
+		(
+			Xor(
+				And(did_at(mark, playinthegym, gym), did_when(mark, playinthegym, lastnight)),
+				And(did_to(mark, tony, visittony), did_when(mark, visittony, lastnight))
+			),
+			"Last night, Mark either went to play in the gym or visited his teacher Tony."
+		),
+		(
+			Implies(
+				did_when(mark, drive, lastnight),
+				Not(did(mark, playinthegym))
+			),
+			"If Mark drove last night, he didn't go to play in the gym."
+		),
+		(
+			Implies(did(mark, visittony), did_with(mark, tony, appointment)),
+			"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
+		),
+		(
+			Not(did_with(mark, tony, appointment)),
+			"Mark had no appointment with his teacher Tony in advance."
+		),
+	]
+	#  Common knowledge that I know to be true and that support the reasoning process.
+	l.common_knowledge = []
+
+	# Target 1.
+	l.assertion = And(
+		at_when(mark, gym, lastnight),
+		at_when(tony, gym, lastnight),
+	)
+
+	# Target 2.
+	l.assertion = did_to(mark, tony, visittony)
+
+	# Target 3.
+	l.assertion = Not(did_when(mark, drive, lastnight))
+
+	# Target 4.
+	l.assertion = Not(at_when(mark, gym, lastnight))
 
 	return l
