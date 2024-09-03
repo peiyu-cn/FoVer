@@ -244,6 +244,10 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 # %% demo 3
 # one choice
 ## User:
+"""Last night, Mark either went to play in the gym or visited his teacher Tony. If Mark drove last night, he didn't go to play in the gym. Mark would go visit his teacher Tony only if he and his teacher had an appointment. In fact, Mark had no appointment with his teacher Tony in advance.
+Q: Which is true based on the above statement?
+A. Mark went to the gym with his teacher Tony last night."""
+## Assistant:
 def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
 	"""
 	Last night, Mark either went to play in the gym or visited his teacher Tony.
