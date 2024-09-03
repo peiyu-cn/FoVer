@@ -21,7 +21,7 @@ from z3_utils import LogicBase, Logic, QALogic
 # 14. Common knowledge.
 # %% System:
 """Extract logic to Z3 Python API from the given question-answer pair.
-You need to define a python function to store `definations`, `facts`, `world_knowledge`, and the main target (`answer`, `answer_type`, and `question`).
+You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertion`.
 `Logic` is a pre-defined wrapper class."""
 
 # %% [markdown] Bamboogle demos
@@ -43,10 +43,9 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	So William Howard Taft was president of the U.S. when superconductivity was discovered.
 	
 	Target: William Howard Taft was president of the U.S. when superconductivity was discovered.
-	Answer: William Howard Taft.
 	"""
-	# Initialize an instance of QALogic with given arguments.
-	l = QALogic(**kwargs)
+	# Initialize an instance of Logic with given arguments.
+	l = Logic(**kwargs)
 
 	# Define types.
 	Name = DeclareSort('Name')
@@ -63,11 +62,6 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	williamhowardtaft = Const('William Howard Taft', Name)
 	us = Const('U.S.', Region)
 	unitedstates = Const('United States', Region)
-
-	# Target.
-	l.answer = williamhowardtaft
-	l.answer_type = Name
-	l.question = lambda n: president_of_when_event(n, us, discover_superconductivity)
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
@@ -96,6 +90,9 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 		(us == unitedstates, "U.S. is United States."),
 	]
 
+	# Target.
+	l.assertion = president_of_when_event(williamhowardtaft, us, discover_superconductivity)
+
 	return l
 
 # %% demo 1 candidate
@@ -110,10 +107,9 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Woodrow Wilson was president of the United States from 1913 to 1921.
 	
 	Target: Woodrow Wilson was president of the U.S. when superconductivity was discovered.
-	Answer: Woodrow Wilson.
 	"""
-	# Initialize an instance of QALogic with given arguments.
-	l = QALogic(**kwargs)
+	# Initialize an instance of Logic with given arguments.
+	l = Logic(**kwargs)
 
 	# Define types.
 	Name = DeclareSort('Name')
@@ -130,11 +126,6 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	woodrowwilson = Const('Woodrow Wilson', Name)
 	us = Const('U.S.', Region)
 	unitedstates = Const('United States', Region)
-
-	# Target.
-	l.answer = woodrowwilson
-	l.answer_type = Name
-	l.question = lambda n: president_of_when_event(n, us, discover_superconductivity)
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
@@ -163,6 +154,9 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		(us == unitedstates, "U.S. is United States."),
 	]
 
+	# Target.
+	l.assertion = president_of_when_event(woodrowwilson, us, discover_superconductivity)
+
 	return l
 
 # %% demo 2
@@ -179,10 +173,9 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 	The war officially ended with an armistice agreement on July 27, 1953.
 
 	Target: The war that Neil Armstrong served ended on July 27, 1953.
-	Answer: July 27, 1953.
 	"""
-	# Initialize an instance of QALogic with given arguments.
-	l = QALogic(**kwargs)
+	# Initialize an instance of Logic with given arguments.
+	l = Logic(**kwargs)
 
 	# Define types.
 	Name = DeclareSort('Name')
@@ -199,11 +192,6 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 	neilarmstrong = Const('Neil Armstrong', Name)
 	koreanwar = Const('Korean War', War)
 	july271953 = Const('July 27, 1953', Date)
-
-	# Target.
-	l.answer = july271953
-	l.answer_type = Date
-	l.question = lambda d: war_served_end_on(neilarmstrong) == d
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
@@ -227,6 +215,9 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
 	l.common_knowledge = []
+
+	# Target.
+	l.assertion = war_served_end_on(neilarmstrong) == july271953
 
 	return l
 
@@ -257,7 +248,7 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
 	
 	Target: Mark went to the gym with his teacher Tony last night.
 	"""
-	# Initialize an instance of QALogic with given arguments.
+	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
 
 	# Define types.
