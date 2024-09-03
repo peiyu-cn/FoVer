@@ -68,7 +68,7 @@ class LogicBase:
 		self._common_knowledge = value
 
 	@property
-	def assertion(self) -> BoolRef:
+	def assertion(self) -> Tuple[BoolRef, str]:
 		"""
 		Target conclusion to be verified.
 		"""
@@ -93,7 +93,7 @@ class LogicBase:
 		Verify the assertion.
 		"""
 		self._add()
-		return verify(self.s, self.assertion)
+		return verify(self.s, self.assertion[0])
 
 	def judge(self):
 		"""
@@ -106,11 +106,11 @@ class Logic(LogicBase):
 		super().__init__(**kwargs)
 
 	@property
-	def assertion(self) -> BoolRef:
+	def assertion(self) -> Tuple[BoolRef, str]:
 		return self._assertion
 
 	@assertion.setter
-	def assertion(self, value):
+	def assertion(self, value: Tuple[Any, str]):
 		self._assertion = value
 
 class QALogic(LogicBase):
@@ -150,6 +150,6 @@ class QALogic(LogicBase):
 	def question(self, value):
 		self._question = value
 	
-	@property
-	def assertion(self):
-		return self.question(self.answer)
+	#@property
+	#def assertion(self): # TODO
+	#	return self.question(self.answer)

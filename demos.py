@@ -5,7 +5,7 @@ from z3_utils import LogicBase, Logic, QALogic
 
 # %% [markdown] demos
 # ## Demo checklist:
-# 1. User message is in format: "Question: <question> Answer: <answer>".
+# 1. User message is in format: "Question: <question> Answer: <answer>". # TODO
 # 2. Function name.
 # 3. kwargs.
 # 4. Target description.
@@ -20,7 +20,7 @@ from z3_utils import LogicBase, Logic, QALogic
 # 13. Claim descriptions.
 # 14. Common knowledge.
 # %% System:
-"""Extract logic to Z3 Python API from the given question-answer pair.
+"""Extract logic to Z3 Python API from the given text.
 You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertion`.
 `Logic` is a pre-defined wrapper class."""
 
@@ -91,7 +91,10 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	]
 
 	# Target.
-	l.assertion = president_of_when_event(williamhowardtaft, us, discover_superconductivity)
+	l.assertion = (
+		president_of_when_event(williamhowardtaft, us, discover_superconductivity),
+		"William Howard Taft was president of the U.S. when superconductivity was discovered."
+	)
 
 	return l
 
@@ -155,7 +158,10 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	]
 
 	# Target.
-	l.assertion = president_of_when_event(woodrowwilson, us, discover_superconductivity)
+	l.assertion = (
+		president_of_when_event(woodrowwilson, us, discover_superconductivity),
+		"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
+	)
 
 	return l
 
@@ -217,7 +223,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs):
 	l.common_knowledge = []
 
 	# Target.
-	l.assertion = war_served_end_on(neilarmstrong) == july271953
+	l.assertion = war_served_end_on(neilarmstrong) == july271953, "The war that Neil Armstrong served ended on July 27, 1953."
 
 	return l
 
@@ -345,18 +351,21 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs):
 	l.common_knowledge = []
 
 	# Target 1.
-	l.assertion = And(
-		at_when(mark, gym, lastnight),
-		at_when(tony, gym, lastnight),
+	l.assertion = (
+		And(
+			at_when(mark, gym, lastnight),
+			at_when(tony, gym, lastnight),
+		),
+		"Mark went to the gym with his teacher Tony last night."
 	)
 
 	# Target 2.
-	l.assertion = did_to(mark, tony, visittony)
+	l.assertion = did_to(mark, tony, visittony), "Mark visited his teacher Tony last night."
 
 	# Target 3.
-	l.assertion = Not(did_when(mark, drive, lastnight))
+	l.assertion = Not(did_when(mark, drive, lastnight)), "Mark didn't drive last night."
 
 	# Target 4.
-	l.assertion = Not(at_when(mark, gym, lastnight))
+	l.assertion = Not(at_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."
 
 	return l
