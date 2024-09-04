@@ -68,9 +68,9 @@ class LogicBase:
 		self._common_knowledge = value
 
 	@property
-	def assertion(self) -> Tuple[BoolRef, str]:
+	def assertions(self) -> list[Tuple[BoolRef, str]]:
 		"""
-		Target conclusion to be verified.
+		Target conclusions to be verified.
 		"""
 		raise NotImplementedError
 
@@ -93,13 +93,19 @@ class LogicBase:
 		Verify the assertion.
 		"""
 		self._add()
-		return verify(self.s, self.assertion[0])
+		return [
+			verify(self.s, expr)
+			for expr, _ in self.assertions
+		]
 
 	def judge(self):
 		"""
 		Judge the assertion.
 		"""
-		return judge(*self.verify())
+		return [
+			judge(r1, r2)
+			for r1, r2 in self.verify()
+		]
 
 	def to_conjuction(self):
 		"""
@@ -125,12 +131,12 @@ class Logic(LogicBase):
 		super().__init__(**kwargs)
 
 	@property
-	def assertion(self) -> Tuple[BoolRef, str]:
-		return self._assertion
+	def assertions(self) -> list[Tuple[BoolRef, str]]:
+		return self._assertions
 
-	@assertion.setter
-	def assertion(self, value: Tuple[Any, str]):
-		self._assertion = value
+	@assertions.setter
+	def assertions(self, value: list[Tuple[Any, str]]):
+		self._assertions = value
 
 class QALogic(LogicBase):
 	def __init__(self, use_common_knowledge=False, **kwargs):

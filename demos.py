@@ -21,7 +21,7 @@ from z3_utils import LogicBase, Logic, QALogic
 # 14. Common knowledge.
 # %% System:
 """Extract logic to Z3 Python API from the given text.
-You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertion`.
+You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`.
 `Logic` is a pre-defined wrapper class."""
 
 # %% [markdown] Bamboogle demos
@@ -36,7 +36,7 @@ Superconductivity was discovered in 1911 .
 The President of the United States was William Howard Taft from 1909 to 1913.  
 So William Howard Taft was president of the U.S. when superconductivity was discovered"""
 ## Assistant:
-def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic:
+def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
 	Superconductivity was discovered in 1911.
 	The President of the United States was William Howard Taft from 1909 to 1913.
@@ -91,10 +91,10 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	]
 
 	# Target.
-	l.assertion = (
+	l.assertions = [(
 		president_of_when_event(williamhowardtaft, us, discover_superconductivity),
 		"William Howard Taft was president of the U.S. when superconductivity was discovered."
-	)
+	)]
 
 	return l
 
@@ -104,7 +104,7 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 Answer:
 Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes. Woodrow Wilson was president of the United States from 1913 to 1921. So the final answer (the name of the president) is: Woodrow Wilson."""
 ## Assistant:
-def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic:
+def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
 	Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes.
 	Woodrow Wilson was president of the United States from 1913 to 1921.
@@ -158,10 +158,10 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	]
 
 	# Target.
-	l.assertion = (
+	l.assertions = [(
 		president_of_when_event(woodrowwilson, us, discover_superconductivity),
 		"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
-	)
+	)]
 
 	return l
 
@@ -173,7 +173,7 @@ Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war
 
 So the final answer (the end date of the war) is: July 27, 1953."""
 ## Assistant:
-def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic:
+def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
 	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
 	The war officially ended with an armistice agreement on July 27, 1953.
@@ -223,7 +223,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic:
 	l.common_knowledge = []
 
 	# Target.
-	l.assertion = war_served_end_on(neilarmstrong) == july271953, "The war that Neil Armstrong served ended on July 27, 1953."
+	l.assertions = [(war_served_end_on(neilarmstrong) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
 
 	return l
 
@@ -239,20 +239,27 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic:
 # D. Mark didn't go to the gym last night.
 
 # %% demo 3
-# one choice
+# multiple choices
 ## User:
 """Last night, Mark either went to play in the gym or visited his teacher Tony. If Mark drove last night, he didn't go to play in the gym. Mark would go visit his teacher Tony only if he and his teacher had an appointment. In fact, Mark had no appointment with his teacher Tony in advance.
 Q: Which is true based on the above statement?
-A. Mark went to the gym with his teacher Tony last night."""
+A. Mark went to the gym with his teacher Tony last night.
+B. Mark visited his teacher Tony last night.
+C. Mark didn't drive last night.
+D. Mark didn't go to the gym last night."""
 ## Assistant:
-def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs) -> Logic:
+def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
 	"""
 	Last night, Mark either went to play in the gym or visited his teacher Tony.
 	If Mark drove last night, he didn't go to play in the gym.
 	Mark would go visit his teacher Tony only if he and his teacher had an appointment.
 	In fact, Mark had no appointment with his teacher Tony in advance.
 	
-	Target: Mark went to the gym with his teacher Tony last night.
+	Targets:
+	A. Mark went to the gym with his teacher Tony last night.
+	B. Mark visited his teacher Tony last night.
+	C. Mark didn't drive last night.
+	D. Mark didn't go to the gym last night.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
@@ -268,7 +275,7 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs) -> Logic:
 	did_to = Function('did-to', Name, Name, Action, BoolSort()) # (Name, Name, Action) -> Bool, Name did Action to Name.
 	did_at = Function('did-at', Name, Action, Place, BoolSort()) # (Name, Action, Place) -> Bool, Name did Action at Place.
 	did_when = Function('did-when', Name, Action, Time, BoolSort()) # (Name, Action, Time) -> Bool, Name did Action when Time.
-	at_when = Function('at-when', Name, Place, Time, BoolSort()) # (Name, Place, Time) -> Bool, Name at Place when Time.
+	at_when = Function('at-when', Name, Place, Time, BoolSort()) # (Name, Place, Time) -> Bool, Name is at Place when Time.
 
 	# Arrange instances.
 	mark = Const('Mark', Name)
@@ -350,23 +357,20 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs) -> Logic:
 	#  Common knowledge that I know to be true and that support the reasoning process.
 	l.common_knowledge = []
 
-	# Target 1.
-	l.assertion = (
-		And(
-			at_when(mark, gym, lastnight),
-			at_when(tony, gym, lastnight),
+	# Targets that should be checked one by one.
+	l.assertions = [
+		# Target 1.
+		(
+			And(at_when(mark, gym, lastnight), at_when(tony, gym, lastnight)),
+			"Mark went to the gym with his teacher Tony last night."
 		),
-		"Mark went to the gym with his teacher Tony last night."
-	)
-
-	# Target 2. # TODO: pick only one target when copying, remember to add return statement.
-	l.assertion = did_to(mark, tony, visittony), "Mark visited his teacher Tony last night."
-
-	# Target 3.
-	l.assertion = Not(did_when(mark, drive, lastnight)), "Mark didn't drive last night."
-
-	# Target 4.
-	l.assertion = Not(at_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."
+		# Target 2.
+		(did_to(mark, tony, visittony), "Mark visited his teacher Tony last night."),
+		# Target 3.
+		(Not(did_when(mark, drive, lastnight)), "Mark didn't drive last night."),
+		# Target 4.
+		(Not(at_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
+	]
 
 	return l
 
@@ -377,7 +381,7 @@ def mark_went_to_gym_with_his_teacher_tony_last_night(**kwargs) -> Logic:
 """Premises: A, B, and C are three balls, one is red, one is blue, and the other is yellow. C is bigger than the yellow ball, A and the blue ball are not the same size, and the blue ball is smaller than C
 Conslusion: A is red, B is blue, C is yellow"""
 ## Assistant:
-def a_red_b_blue_c_yellow(**kwargs) -> Logic:
+def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
 	Premises:
 	A, B, and C are three balls, one is red, one is blue, and the other is yellow.
@@ -396,7 +400,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic:
 	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # This must be an enum so that Z3 knows that these 3 colors are different.
 	# Define functions.
 	color = Function('color', Ball, Color) # (Ball) -> Color, Ball is Color.
-	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int.
+	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int. # Any comparable type can be used for size. I just use Int for simplicity.
 
 	# Arrange instances.
 
@@ -421,6 +425,158 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic:
 	l.common_knowledge = []
 
 	# Target.
-	l.assertion = And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow."
+	l.assertions = [(And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow.")]
+
+	return l
+
+# %% [markdown] ProofWriter demos
+# ## ProofWriter demos
+# theory-statements pairs
+# 
+# Used data:
+# - OWA/birds-electricity
+# - OWA/NatLang
+# 
+# Template: "Theory: <theory> Question: Which of the following statements can be inferred from the theory?: <statements>"
+
+# %% demo 5
+# from `meta-train.jsonl` line 1
+## User:
+"""Theory:
+From a certain angle Dave is blue but he is young so maybe that will go away. My friend Eric is very young. People say he is nice for having a round shape. Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure. A kind, round person will surely be red as well. I have found that young, blue, and big individuals are also red. If smeone has a blue and green color, then they are young and probably kind. People that are green tend to be young. Somebody fitting a young, blue and round description will also fit a green description. Being cold and blue made them rough to deal with. A person that is known to be big and rough is also green, they will feel blue about it.
+
+Question: Which of the following statements can be inferred from the theory?
+Q1. Harry is blue.
+Q2. Harry is not blue.
+Q3. Harry is young.
+Q4. Harry is not young.
+Q5. Harry is kind.
+Q6. Harry is not kind.
+Q7. Harry is red.
+Q8. Harry is not red.
+Q9. Eric is not kind.
+Q10. Bob is kind.
+Q11. Dave is not rough.
+Q12. Bob is young.
+Q13. Harry is not cold.
+Q14. Bob is big.
+Q15. Bob is not round.
+Q16. Dave is nice."""
+## Assistant:
+def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in case with multiple targets.
+	"""
+	Theory:
+	From a certain angle Dave is blue but he is young so maybe that will go away.
+	My friend Eric is very young. People say he is nice for having a round shape.
+	Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure.
+	A kind, round person will surely be red as well.
+	I have found that young, blue, and big individuals are also red.
+	If smeone has a blue and green color, then they are young and probably kind.
+	People that are green tend to be young.
+	Somebody fitting a young, blue and round description will also fit a green description.
+	Being cold and blue made them rough to deal with.
+	A person that is known to be big and rough is also green, they will feel blue about it.
+
+	Question: Which of the following statements can be inferred from the theory?
+	Q1. Harry is blue.
+	Q2. Harry is not blue.
+	Q3. Harry is young.
+	Q4. Harry is not young.
+	Q5. Harry is kind.
+	Q6. Harry is not kind.
+	Q7. Harry is red.
+	Q8. Harry is not red.
+	Q9. Eric is not kind.
+	Q10. Bob is kind.
+	Q11. Dave is not rough.
+	Q12. Bob is young.
+	Q13. Harry is not cold.
+	Q14. Bob is big.
+	Q15. Bob is not round.
+	Q16. Dave is nice.
+	"""
+	# Initialize an instance of Logic with given arguments.
+	l = Logic(**kwargs)
+
+	# Define types.
+	Person = DeclareSort('Person')
+	Feature, (blue, young, nice, round, green, kind, red, big, cold, rough) = EnumSort('Feature',
+		['blue', 'young', 'nice', 'round', 'green', 'kind', 'red', 'big', 'cold', 'rough']
+	) # Features are different from one another, and these are all features that would be used.
+	# Define functions.
+	has_feature = Function('is', Person, Feature, BoolSort()) # (Person, Feature) -> Bool, Person is Feature.
+
+	# Arrange instances.
+	dave = Const('Dave', Person)
+	eric = Const('Eric', Person)
+	harry = Const('Harry', Person)
+	bob = Const('Bob', Person)
+
+	# Implementations.
+	#  Local placeholders that will be used by quantifiers.
+	p = Const('p', Person)
+
+	#  Relation Definitions
+	l.definations = []
+
+	#  Claims from text
+	l.claims = [
+		(has_feature(dave, blue), "From a certain angle Dave is blue."),
+		(has_feature(dave, young), "Dave is young."),
+		(has_feature(eric, young), "Eric is very young."),
+		(has_feature(eric, nice), "People say Eric is nice."),
+		(has_feature(eric, round), "Eric has a round shape."),
+		(has_feature(harry, blue), "Harry turned blue."),
+		(has_feature(harry, green), "Harry turned green."),
+		(has_feature(harry, round), "Harry has a round figure."),
+		(
+			ForAll([p], Implies(And(has_feature(p, kind), has_feature(p, round)), has_feature(p, red))),
+			"A kind, round person will surely be red."
+		),
+		(
+			ForAll([p], Implies(And(has_feature(p, young), has_feature(p, blue), has_feature(p, big)), has_feature(p, red))),
+			"Young, blue, and big individuals are also red."
+		),
+		(
+			ForAll([p], Implies(And(has_feature(p, blue), has_feature(p, green)), And(has_feature(p, young), has_feature(p, kind)))),
+			"If someone has a blue and green color, then they are young and probably kind."
+		),
+		(ForAll([p], Implies(has_feature(p, green), has_feature(p, young))), "People that are green tend to be young."),
+		(
+			ForAll([p], Implies(And(has_feature(p, young), has_feature(p, blue), has_feature(p, round)), has_feature(p, green))),
+			"Somebody fitting a young, blue and round description will also fit a green description."
+		),
+		(
+			ForAll([p], Implies(And(has_feature(p, cold), has_feature(p, blue)), has_feature(p, rough))),
+			"Being cold and blue made them rough to deal with."
+		),
+		(
+			ForAll([p], Implies(And(has_feature(p, big), has_feature(p, rough), has_feature(p, green)), has_feature(p, blue))),
+			"A person that is known to be big and rough is also green, they will feel blue about it."
+		),
+	]
+
+	#  Common knowledge that I know to be true and that support the reasoning process.
+	l.common_knowledge = []
+
+	# Targets that should be checked one by one.
+	l.assertions = [
+		(has_feature(harry, blue), "Harry is blue."),
+		(Not(has_feature(harry, blue)), "Harry is not blue."),
+		(has_feature(harry, young), "Harry is young."),
+		(Not(has_feature(harry, young)), "Harry is not young."),
+		(has_feature(harry, kind), "Harry is kind."),
+		(Not(has_feature(harry, kind)), "Harry is not kind."),
+		(has_feature(harry, red), "Harry is red."),
+		(Not(has_feature(harry, red)), "Harry is not red."),
+		(Not(has_feature(eric, kind)), "Eric is not kind."),
+		(has_feature(bob, kind), "Bob is kind."),
+		(Not(has_feature(dave, rough)), "Dave is not rough."),
+		(has_feature(bob, young), "Bob is young."),
+		(Not(has_feature(harry, cold)), "Harry is not cold."),
+		(has_feature(bob, big), "Bob is big."),
+		(Not(has_feature(bob, round)), "Bob is not round."),
+		(has_feature(dave, nice), "Dave is nice."),
+	]
 
 	return l
