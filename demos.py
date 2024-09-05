@@ -65,15 +65,15 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	i = Int('i')
-	n = Const('n', Name)
-	e = Const('e', Event)
-	r = Const('r', Region)
+	i1, = Ints('i1')
+	n1, = Consts('n1', Name)
+	e1, = Consts('e1', Event)
+	r1, = Consts('r1', Region)
 
 	#  Relation Definitions
 	l.definations = [
 		(
-			ForAll([n, e, r], president_of_when_event(n, r, e) == Exists([i], And(happen_in(e) == i, president_of_when(n, r, i)))),
+			ForAll([n1, e1, r1], president_of_when_event(n1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_when(n1, r1, i1)))),
 			"A person was president when an event happened if and only if the event happened in the year that person was president."
 		),
 	]
@@ -81,7 +81,7 @@ def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(
 	l.claims = [
 		(happen_in(discover_superconductivity) == 1911, "Superconductivity was discovered in 1911."),
 		(
-			ForAll([i], Implies(And(i >= 1909, i <= 1913), (president_of_when(williamhowardtaft, unitedstates, i)))),
+			ForAll([i1], Implies(And(i1 >= 1909, i1 <= 1913), (president_of_when(williamhowardtaft, unitedstates, i1)))),
 			"William Howard Taft was president from 1909 to 1913.",
 		),
 	]
@@ -132,15 +132,15 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	i = Int('i')
-	n = Const('n', Name)
-	e = Const('e', Event)
-	r = Const('r', Region)
+	i1, = Ints('i1')
+	n1, = Consts('n1', Name)
+	e1, = Consts('e1', Event)
+	r1, = Consts('r1', Region)
 
 	#  Relation Definitions
 	l.definations = [
 		(
-			ForAll([n, e, r], president_of_when_event(n, r, e) == Exists([i], And(happen_in(e) == i, president_of_when(n, r, i)))),
+			ForAll([n1, e1, r1], president_of_when_event(n1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_when(n1, r1, i1)))),
 			"A person was president when an event happened if and only if the event happened in the year that person was president."
 		),
 	]
@@ -148,7 +148,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	l.claims = [
 		(happen_in(discover_superconductivity) == 1911, "Superconductivity was discovered in 1911."),
 		(
-			ForAll([i], Implies(And(i >= 1913, i <= 1921), (president_of_when(woodrowwilson, unitedstates, i)))),
+			ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_when(woodrowwilson, unitedstates, i1)))),
 			"Woodrow Wilson was president from 1913 to 1921.",
 		),
 	]
@@ -201,22 +201,22 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # 
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	i = Int('i')
-	n = Const('n', Name)
-	w = Const('w', War)
-	d = Const('d', Date)
+	i1, = Ints('i1')
+	n1, = Consts('n1', Name)
+	w1, = Consts('w1', War)
+	d1, = Consts('d1', Date)
 
 	#  Relation Definitions
 	l.definations = [
 		(
-			ForAll([n, d], (war_served_end_on(n) == d) == Exists([w], And(serve_in(n) == w, war_end_on(w) == d))),
+			ForAll([n1, d1], (war_served_end_on(n1) == d1) == Exists([w1], And(serve_in(n1) == w1, war_end_on(w1) == d1))),
 			"The war that a person served in ended on a date if and only if the person served in that war and the war ended on that date."
 		),
 	]
 	#  Claims from text
 	l.claims = [
 		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
-		(ForAll([i], (war_in(koreanwar, i)) == And(i >= 1950, i <= 1953)), "Korean War lasted from 1950 to 1953."),
+		(ForAll([i1], (war_in(koreanwar, i1)) == And(i1 >= 1950, i1 <= 1953)), "Korean War lasted from 1950 to 1953."),
 		(war_end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
@@ -290,42 +290,42 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
 	n1, n2 = Consts('n1 n2', Name)
-	a = Const('a', Action)
+	a1, = Consts('a1', Action)
 	p1, p2 = Consts('p1 p2', Place)
-	t = Const('t', Time)
+	t1, = Consts('t1', Time)
 
 	#  Relation Definitions
 	l.definations = [
 		# relations of 'did'
 		(
-			ForAll([n1, n2, a], Implies(did_with(n1, n2, a), did(n1, a))),
+			ForAll([n1, n2, a1], Implies(did_with(n1, n2, a1), did(n1, a1))),
 			"If a person did an action with another person, then that person did that action."
 		),
 		(
-			ForAll([n1, n2, a], Implies(did_to(n1, n2, a), did(n1, a))),
+			ForAll([n1, n2, a1], Implies(did_to(n1, n2, a1), did(n1, a1))),
 			"If a person did an action to another person, then that person did that action."
 		),
 		(
-			ForAll([n1, a, p1], Implies(did_at(n1, a, p1), did(n1, a))),
+			ForAll([n1, a1, p1], Implies(did_at(n1, a1, p1), did(n1, a1))),
 			"If a person did an action at a place, then that person did that action."
 		),
 		(
-			ForAll([n1, a, t], Implies(did_when(n1, a, t), did(n1, a))),
+			ForAll([n1, a1, t1], Implies(did_when(n1, a1, t1), did(n1, a1))),
 			"If a person did an action when a time, then that person did that action."
 		),
 		# relations of 'did-with'
 		(
-			ForAll([n1, n2, a], did_with(n1, n2, a) == did_with(n2, n1, a)),
+			ForAll([n1, n2, a1], did_with(n1, n2, a1) == did_with(n2, n1, a1)),
 			"If a person did an action with another person, then the other person did that action with the person."
 		),
 		# relations of 'at-when'
 		(
-			ForAll([n1, p1, t], Implies(at_when(n1, p1, t), 
-				ForAll([p2], (p2 == p1) == at_when(n1, p2, t)))),
+			ForAll([n1, p1, t1], Implies(at_when(n1, p1, t1), 
+				ForAll([p2], (p2 == p1) == at_when(n1, p2, t1)))),
 			"If a person was at a place when a time, then the person was at only that place when that time."
 		),
 		(
-			ForAll([n1, a, p1, t], Implies(And(did_at(n1, a, p1), did_when(n1, a, t)), at_when(n1, p1, t))),
+			ForAll([n1, a1, p1, t1], Implies(And(did_at(n1, a1, p1), did_when(n1, a1, t1)), at_when(n1, p1, t1))),
 		  	"If a person did an action at a place and when a time, then the person was at that place when that time."
 		)
 	]
@@ -404,7 +404,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	b1 = Const('b1', Ball) # I use 'b1' here because 'b' is already used.
+	b1, = Consts('b1', Ball)
 
 	#  Relation Definitions
 	l.definations = []
@@ -512,7 +512,7 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	p = Const('p', Person)
+	p1, = Consts('p1', Person)
 
 	#  Relation Definitions
 	l.definations = []
@@ -528,28 +528,28 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 		(has_feature(harry, green), "Harry turned green."),
 		(has_feature(harry, round), "Harry has a round figure."),
 		(
-			ForAll([p], Implies(And(has_feature(p, kind), has_feature(p, round)), has_feature(p, red))),
+			ForAll([p1], Implies(And(has_feature(p1, kind), has_feature(p1, round)), has_feature(p1, red))),
 			"A kind, round person will surely be red."
 		),
 		(
-			ForAll([p], Implies(And(has_feature(p, young), has_feature(p, blue), has_feature(p, big)), has_feature(p, red))),
+			ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, big)), has_feature(p1, red))),
 			"Young, blue, and big individuals are also red."
 		),
 		(
-			ForAll([p], Implies(And(has_feature(p, blue), has_feature(p, green)), And(has_feature(p, young), has_feature(p, kind)))),
+			ForAll([p1], Implies(And(has_feature(p1, blue), has_feature(p1, green)), And(has_feature(p1, young), has_feature(p1, kind)))),
 			"If someone has a blue and green color, then they are young and probably kind."
 		),
-		(ForAll([p], Implies(has_feature(p, green), has_feature(p, young))), "People that are green tend to be young."),
+		(ForAll([p1], Implies(has_feature(p1, green), has_feature(p1, young))), "People that are green tend to be young."),
 		(
-			ForAll([p], Implies(And(has_feature(p, young), has_feature(p, blue), has_feature(p, round)), has_feature(p, green))),
+			ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, round)), has_feature(p1, green))),
 			"Somebody fitting a young, blue and round description will also fit a green description."
 		),
 		(
-			ForAll([p], Implies(And(has_feature(p, cold), has_feature(p, blue)), has_feature(p, rough))),
+			ForAll([p1], Implies(And(has_feature(p1, cold), has_feature(p1, blue)), has_feature(p1, rough))),
 			"Being cold and blue made them rough to deal with."
 		),
 		(
-			ForAll([p], Implies(And(has_feature(p, big), has_feature(p, rough), has_feature(p, green)), has_feature(p, blue))),
+			ForAll([p1], Implies(And(has_feature(p1, big), has_feature(p1, rough), has_feature(p1, green)), has_feature(p1, blue))),
 			"A person that is known to be big and rough is also green, they will feel blue about it."
 		),
 	]
