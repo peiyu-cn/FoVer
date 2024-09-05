@@ -383,14 +383,12 @@ Conslusion: A is red, B is blue, C is yellow"""
 ## Assistant:
 def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
-	Premises:
 	A, B, and C are three balls, one is red, one is blue, and the other is yellow.
 	C is bigger than the yellow ball
 	A and the blue ball are not the same size
 	the blue ball is smaller than C.
 
-	Conclusion:
-	A is red, B is blue, C is yellow.
+	Target: A is red, B is blue, C is yellow.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
@@ -463,11 +461,11 @@ Q14. Bob is big.
 Q15. Bob is not round.
 Q16. Dave is nice."""
 ## Assistant:
-def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in case with multiple targets.
+def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
 	"""
-	Theory:
 	From a certain angle Dave is blue but he is young so maybe that will go away.
-	My friend Eric is very young. People say he is nice for having a round shape.
+	My friend Eric is very young.
+	People say he is nice for having a round shape.
 	Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure.
 	A kind, round person will surely be red as well.
 	I have found that young, blue, and big individuals are also red.
@@ -477,7 +475,7 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 	Being cold and blue made them rough to deal with.
 	A person that is known to be big and rough is also green, they will feel blue about it.
 
-	Question: Which of the following statements can be inferred from the theory?
+	Targets:
 	Q1. Harry is blue.
 	Q2. Harry is not blue.
 	Q3. Harry is young.

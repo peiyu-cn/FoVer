@@ -30,9 +30,17 @@ def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 
 class LogicBase:
 	def __init__(self, use_common_knowledge=False, **kwargs):
+		self.context = kwargs.get("context", None) or Context()
+		kwargs["ctx"] = self.context
 		self.s = Solver(**kwargs)
 		self.use_common_knowledge = use_common_knowledge
 		self._added = False
+
+	def _switch_context(self, exprs: list[Tuple[Any, str]]):
+		return [
+			(expr.translate(self.context), desc)
+			for expr, desc in exprs
+		]
 
 	@property
 	def definations(self):
@@ -43,7 +51,7 @@ class LogicBase:
 
 	@definations.setter
 	def definations(self, value: list[Tuple[Any, str]]):
-		self._definations = value
+		self._definations = self._switch_context(value)
 
 	@property
 	def claims(self) -> list[Tuple[Any, str]]:
@@ -54,7 +62,7 @@ class LogicBase:
 
 	@claims.setter
 	def claims(self, value: list[Tuple[Any, str]]):
-		self._claims = value
+		self._claims = self._switch_context(value)
 
 	@property
 	def common_knowledge(self) -> list[Tuple[Any, str]]:
@@ -65,7 +73,7 @@ class LogicBase:
 
 	@common_knowledge.setter
 	def common_knowledge(self, value: list[Tuple[Any, str]]):
-		self._common_knowledge = value
+		self._common_knowledge = self._switch_context(value)
 
 	@property
 	def assertions(self) -> list[Tuple[BoolRef, str]]:
@@ -136,7 +144,7 @@ class Logic(LogicBase):
 
 	@assertions.setter
 	def assertions(self, value: list[Tuple[Any, str]]):
-		self._assertions = value
+		self._assertions = self._switch_context(value)
 
 class QALogic(LogicBase):
 	def __init__(self, use_common_knowledge=False, **kwargs):
