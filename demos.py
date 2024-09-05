@@ -404,7 +404,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	b1 = Const('b1', Ball)
+	b1 = Const('b1', Ball) # I use 'b1' here because 'b' is already used.
 
 	#  Relation Definitions
 	l.definations = []
