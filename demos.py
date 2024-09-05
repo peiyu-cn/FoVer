@@ -30,75 +30,67 @@ You need to define a python function to store `definations`, `claims`, `common_k
 
 # %% demo 1
 ## User:
-"""Question: Who was president of the U.S. when superconductivity was discovered?
+"""Question: When did the war that Neil Armstrong served in end?
 Answer:
-Superconductivity was discovered in 1911 .  
-The President of the United States was William Howard Taft from 1909 to 1913.  
-So William Howard Taft was president of the U.S. when superconductivity was discovered"""
+Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war officially ended with an armistice agreement on July 27, 1953. 
+
+So the final answer (the end date of the war) is: July 27, 1953."""
 ## Assistant:
-def williamhowardtaft_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic: # This function name exactly matches the target.
+def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
-	Superconductivity was discovered in 1911.
-	The President of the United States was William Howard Taft from 1909 to 1913.
-	So William Howard Taft was president of the U.S. when superconductivity was discovered.
-	
-	Target: William Howard Taft was president of the U.S. when superconductivity was discovered.
+	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
+	The war officially ended with an armistice agreement on July 27, 1953.
+
+	Target: The war that Neil Armstrong served ended on July 27, 1953.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
 
 	# Define types.
 	Name = DeclareSort('Name')
-	Event = DeclareSort('Event')
-	Region = DeclareSort('Region')
+	War = DeclareSort('War')
+	Date = DeclareSort('Date')
 	# Define functions.
-	president_of_when = Function('is-president-of-when', Name, Region, IntSort(), BoolSort()) # (Name, Region, Int) -> Bool Name is president of Region when Int. # Using int as input and bool as output because this is not *-to-1 relation.
-	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, Event happen in Int. # Using int as output because event time is *-to-1 relation.
+	serve_in = Function('serve-in', Name, War) # (Name) -> War, Name serve in War. # The question implies that Neil Armstrong served in only one war, so this is a *-to-1 relation.
+	war_in = Function('war-in', War, IntSort(), BoolSort()) # (War, Int) -> Bool, War in Int. # Using int as input and bool as output because war time is *-to-1 relation.
+	war_end_on = Function('war-end-on', War, Date) # (War) -> Date, Event end on Date.
 	#  Target function:
-	president_of_when_event = Function('is-president-of-when-event', Name, Region, Event, BoolSort()) # (Name, Region, Event) -> Bool, Name is president of Region when Event.
+	war_served_end_on = Function('war-served-end-on', Name, Date) # (Name) -> Date, The war that Name served end on Date.
 
 	# Arrange instances.
-	discover_superconductivity = Const('discover-superconductivity', Event)
-	williamhowardtaft = Const('William Howard Taft', Name)
-	us = Const('U.S.', Region)
-	unitedstates = Const('United States', Region)
+	neilarmstrong = Const('Neil Armstrong', Name)
+	koreanwar = Const('Korean War', War)
+	july271953 = Const('July 27, 1953', Date)
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
 	i1, = Ints('i1')
 	n1, = Consts('n1', Name)
-	e1, = Consts('e1', Event)
-	r1, = Consts('r1', Region)
+	w1, = Consts('w1', War)
+	d1, = Consts('d1', Date)
 
 	#  Relation Definitions
 	l.definations = [
 		(
-			ForAll([n1, e1, r1], president_of_when_event(n1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_when(n1, r1, i1)))),
-			"A person was president when an event happened if and only if the event happened in the year that person was president."
+			ForAll([n1, d1], (war_served_end_on(n1) == d1) == Exists([w1], And(serve_in(n1) == w1, war_end_on(w1) == d1))),
+			"The war that a person served in ended on a date if and only if the person served in that war and the war ended on that date."
 		),
 	]
 	#  Claims from text
 	l.claims = [
-		(happen_in(discover_superconductivity) == 1911, "Superconductivity was discovered in 1911."),
-		(
-			ForAll([i1], Implies(And(i1 >= 1909, i1 <= 1913), (president_of_when(williamhowardtaft, unitedstates, i1)))),
-			"William Howard Taft was president from 1909 to 1913.",
-		),
+		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
+		(ForAll([i1], (war_in(koreanwar, i1)) == And(i1 >= 1950, i1 <= 1953)), "Korean War lasted from 1950 to 1953."),
+		(war_end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = [
-		(us == unitedstates, "U.S. is United States."),
-	]
+	l.common_knowledge = []
 
 	# Target.
-	l.assertions = [(
-		president_of_when_event(williamhowardtaft, us, discover_superconductivity),
-		"William Howard Taft was president of the U.S. when superconductivity was discovered."
-	)]
+	l.assertions = [(war_served_end_on(neilarmstrong) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
 
 	return l
 
-# %% demo 1 candidate
+# %% demo 2
 ## User:
 """Question: Who was president of the U.S. when superconductivity was discovered?
 Answer:
@@ -162,68 +154,6 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		president_of_when_event(woodrowwilson, us, discover_superconductivity),
 		"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
 	)]
-
-	return l
-
-# %% demo 2
-## User:
-"""Question: When did the war that Neil Armstrong served in end?
-Answer:
-Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war officially ended with an armistice agreement on July 27, 1953. 
-
-So the final answer (the end date of the war) is: July 27, 1953."""
-## Assistant:
-def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # This function name exactly matches the target.
-	"""
-	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
-	The war officially ended with an armistice agreement on July 27, 1953.
-
-	Target: The war that Neil Armstrong served ended on July 27, 1953.
-	"""
-	# Initialize an instance of Logic with given arguments.
-	l = Logic(**kwargs)
-
-	# Define types.
-	Name = DeclareSort('Name')
-	War = DeclareSort('War')
-	Date = DeclareSort('Date')
-	# Define functions.
-	serve_in = Function('serve-in', Name, War) # (Name) -> War, Name serve in War. # The question implies that Neil Armstrong served in only one war, so this is a *-to-1 relation.
-	war_in = Function('war-in', War, IntSort(), BoolSort()) # (War, Int) -> Bool, War in Int. # Using int as input and bool as output because war time is *-to-1 relation.
-	war_end_on = Function('war-end-on', War, Date) # (War) -> Date, Event end on Date.
-	#  Target function:
-	war_served_end_on = Function('war-served-end-on', Name, Date) # (Name) -> Date, The war that Name served end on Date.
-
-	# Arrange instances.
-	neilarmstrong = Const('Neil Armstrong', Name)
-	koreanwar = Const('Korean War', War)
-	july271953 = Const('July 27, 1953', Date)
-
-	# Implementations.
-	#  Local placeholders that will be used by quantifiers.
-	i1, = Ints('i1')
-	n1, = Consts('n1', Name)
-	w1, = Consts('w1', War)
-	d1, = Consts('d1', Date)
-
-	#  Relation Definitions
-	l.definations = [
-		(
-			ForAll([n1, d1], (war_served_end_on(n1) == d1) == Exists([w1], And(serve_in(n1) == w1, war_end_on(w1) == d1))),
-			"The war that a person served in ended on a date if and only if the person served in that war and the war ended on that date."
-		),
-	]
-	#  Claims from text
-	l.claims = [
-		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
-		(ForAll([i1], (war_in(koreanwar, i1)) == And(i1 >= 1950, i1 <= 1953)), "Korean War lasted from 1950 to 1953."),
-		(war_end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
-	]
-	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = []
-
-	# Target.
-	l.assertions = [(war_served_end_on(neilarmstrong) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
 
 	return l
 
