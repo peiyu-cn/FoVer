@@ -1,6 +1,7 @@
 from typing import Any
 import ast
 from logging import Logger, getLogger
+import re
 
 from z3_utils import Logic
 
@@ -9,6 +10,9 @@ def get_function_name(code: str) -> str:
 	node = tree.body[0]
 	assert isinstance(node, ast.FunctionDef)
 	return node.name
+
+def _switch_enum_context(code: str) -> str:
+	return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
 
 def execute_code(
 	code: str,
@@ -19,6 +23,7 @@ def execute_code(
 from z3_utils import Logic
 ''', context)
 	try:
+		code = _switch_enum_context(code)
 		exec(code, context)
 		logger.debug('Code imported.')
 	except Exception as e:
@@ -34,14 +39,27 @@ from z3_utils import Logic
 		logger.debug(f'{function_name} executed.')
 	except Exception as e:
 		logger.error(f'Failed to execute {function_name}.')
+		logger.debug(code)
 		return False, e
 
 	logger.debug('Judging...')
 	# TODO: handle common exceptions
 	try:
-		logic.judge()
+		result = logic.judge()
 		logger.debug('Judged.')
-		return True, logic
+		return True, result
 	except Exception as e:
 		logger.error('Failed to judge.')
 		return False, e
+
+def process_response(content: str):
+	content = content.strip()
+	if content.startswith('```'):
+		assert content.endswith('```')
+		lf_idx = content.find('\n')
+		assert lf_idx != -1
+		return content[lf_idx + 1:-3].rstrip()
+	else:
+		assert content.startswith('def ')
+		assert content.endswith('return l')
+		return content
