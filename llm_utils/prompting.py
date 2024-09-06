@@ -1,5 +1,8 @@
+from typing import Sequence, Any
+
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+	from anthropic.types.message_param import MessageParam
 	from openai.types.chat import ChatCompletionMessageParam
 
 quote = '"""'
@@ -8,7 +11,7 @@ retur = 'return l'
 
 def _parse_demo(
 	demo: str,
-) -> "list[ChatCompletionMessageParam]":
+) -> "Sequence[MessageParam]":
 	user_idx = demo.find('## User:')
 	assistant_idx = demo.find(assis)
 	user_text = demo[user_idx:assistant_idx]
@@ -25,21 +28,11 @@ def _parse_demo(
 	return [
 		{
 			"role": "user",
-			"content": [
-				{
-					"type": "text",
-					"text": user
-				}
-			]
+			"content": user
 		},
 		{
 			"role": "assistant",
-			"content": [
-				{
-					"type": "text",
-					"text": assistant
-				}
-			]
+			"content": assistant
 		}
 	]
 
@@ -59,6 +52,25 @@ def get_demos(
 
 	# Get prompts
 	demos = rest.split('# %% demo')
-	demos_messages = [_parse_demo(demo) for demo in demos[1:]]
+	demos_message_pairs = [_parse_demo(demo) for demo in demos[1:]]
 
-	return system, demos_messages
+	return system, demos_message_pairs
+
+def get_messages(
+	msgs: "Sequence[Sequence[MessageParam]]",
+	user: str,
+) -> "Sequence[MessageParam]":
+	messages: "Sequence[MessageParam]" = []
+
+	for message_pair in msgs:
+		for message in message_pair:
+			messages.append(message)
+
+	messages.append(
+		{
+			"role": "user",
+			"content": user
+		}
+	)
+
+	return messages
