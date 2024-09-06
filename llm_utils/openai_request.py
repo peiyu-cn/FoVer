@@ -4,7 +4,7 @@ from typing import TypeVar
 import json
 from openai import OpenAI
 
-from prompting import get_demos, get_messages
+from .prompting import get_demos, get_messages
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
