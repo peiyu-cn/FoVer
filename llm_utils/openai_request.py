@@ -79,16 +79,25 @@ def get_openai_request_body(
 def get_requests(
 	job_prefix: str,
 	bodies: "list[OpenAIRequestBody]",
+	custom_ids: Optional[Sequence[str]] = None,
 	base_id = 0,
 	endpoint = '/v1/chat/completions',
 ) -> "list[OpenAIRequest]":
+	if custom_ids:
+		assert len(custom_ids) == len(bodies)
+		prefixes = [
+			f"{job_prefix}-{i + base_id :04}({custom_id})"
+			for i, custom_id in enumerate(custom_ids)
+		]
+	else:
+		prefixes = [f"{job_prefix}-{i + base_id :04}" for i in range(len(bodies))]
 	return [
 		{
-			"custom_id": f"{job_prefix}-{i + base_id :04}",
+			"custom_id": prefixes[i],
 			"method": "POST",
 			"url": endpoint,
-			"body": body,
-		} for i, body in enumerate(bodies)
+			"body": bodies[i],
+		} for i in range(len(bodies))
 	]
 
 def generate_batch(
@@ -99,6 +108,7 @@ def generate_batch(
 	model_name = 'gpt-4o-2024-08-06',
 	endpoint = '/v1/chat/completions',
 	demos_path = 'demos.py',
+	custom_ids: Optional[Sequence[str]] = None,
 ):
 	demos = get_demos(demos_path)
 	system, _demos = demos
@@ -118,7 +128,7 @@ def generate_batch(
 		bodies.append(request_body)
 
 	top = base_id + size
-	requests = get_requests(job_prefix, bodies[base_id:top], base_id, endpoint)
+	requests = get_requests(job_prefix, bodies[base_id:top], custom_ids[base_id:top] if custom_ids else None, base_id, endpoint)
 
 	outfile = f'data/batch_request/{job_prefix}-{base_id:04}-{top:04}.jsonl'
 	with open(outfile, 'w', encoding='utf-8') as file:

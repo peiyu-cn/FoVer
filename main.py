@@ -1,14 +1,23 @@
+from typing import TYPE_CHECKING
+
 def request():
 	# from dataset_utils.proofwriter import generate_prompts
 	from llm_utils.openai_request import generate_batch, submit_batch
 	from dataset_utils.reveal import generate_prompts
 
-	prompts = generate_prompts()
+	prompts, ids = generate_prompts(
+		filter=lambda record: record['dataset'] == 'strategy_qa',
+		return_ids=True,
+	)
+	if TYPE_CHECKING:
+		assert isinstance(prompts, list) # idiot pylance
+		assert isinstance(ids, list) # even more idiot
 	outfile = generate_batch(
 		prompts,
 		0, 10,
-		'z3py-5-shot-v3-reveal-gpt4o0806',
+		'z3py-5-shot-v3-reveal-strategyqa-gpt4o0806',
 		'gpt-4o-2024-08-06',
+		custom_ids=ids,
 	)
 	input('Press Enter to submit batch.')
 	submit_batch(outfile)

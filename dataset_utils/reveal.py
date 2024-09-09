@@ -1,4 +1,4 @@
-from typing import Any, Literal, Sequence, TypedDict
+from typing import Any, Callable, Literal, Optional, Sequence, TypedDict
 
 import pandas as pd
 
@@ -27,8 +27,20 @@ def generate_prompt(record: RevealRecord):
 
 def generate_prompts(
 	data_path='data/reveal/eval/reveal_eval.csv',
+	filter: Optional[Callable[[RevealRecord], bool]] = None,
+	return_ids = False,
 ):
-	return [
-		generate_prompt(record)
-		for record in get_reveal_data(data_path)
-	]
+	prompts: list[str] = []
+	ids: list[str] = []
+
+	for record in get_reveal_data(data_path):
+		if filter and not filter(record):
+			continue
+		prompts.append(generate_prompt(record))
+		if return_ids:
+			ids.append(record['answer_id'])
+
+	if return_ids:
+		return prompts, ids
+	else:
+		return prompts
