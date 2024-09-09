@@ -89,10 +89,11 @@ def check_result(
 		if is_equal == True:
 			correct += 1
 		elif is_equal == False:
+			logger.info('WA: Q%d: %s - %s', i, results[i], data['questions'][i]['answer'])
 			wrong += 1
 		else:
+			logger.info('Failed: Q%d: %s', i, data['questions'][i]['answer'])
 			failed += 1
-		logger.debug('q%d: %s - %s', i, results[i], data['questions'][i]['answer'])
 
 	if wrong > 0:
 		logger.info('Wrong answers for %s', data['id'])
