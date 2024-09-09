@@ -1,12 +1,13 @@
 def request():
-	from dataset_utils.proofwriter import generate_prompts
+	# from dataset_utils.proofwriter import generate_prompts
 	from llm_utils.openai_request import generate_batch, submit_batch
+	from dataset_utils.reveal import generate_prompts
 
-	prompts = generate_prompts('data/proofwriter/OWA/NatLang/meta-dev.jsonl')
+	prompts = generate_prompts()
 	outfile = generate_batch(
 		prompts,
 		0, 10,
-		'z3py-5-shot-v3-proofwriter',
+		'z3py-5-shot-v3-reveal-gpt4o0806',
 		'gpt-4o-2024-08-06',
 	)
 	input('Press Enter to submit batch.')
@@ -32,4 +33,5 @@ def check():
 import logging
 logging.basicConfig(level=logging.INFO)
 
-check()
+request()
+# check()
