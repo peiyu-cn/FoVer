@@ -1,8 +1,6 @@
 from typing import Any, Callable, Literal, Optional, Sequence, TypedDict
 
 from logging import Logger, getLogger
-import pandas as pd
-from z3 import sat, unknown
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -20,6 +18,8 @@ def get_reveal_data(
 	data_path = 'data/reveal/eval/reveal_eval.csv',
 	filter: Optional[Callable[[RevealRecord], bool]] = None,
 ) -> Sequence[RevealRecord]:
+	import pandas as pd
+
 	df = pd.read_csv(data_path, encoding='utf-8')
 
 	df = df[[k for k in RevealRecord.__annotations__.keys()]]
@@ -56,6 +56,8 @@ def _result_equal(
 	judge_result: "bool | CheckSatResult",
 	answer: bool
 ) -> "bool | CheckSatResult":
+	from z3 import sat, unknown
+
 	if answer == True:
 		return judge_result == True
 	elif judge_result == unknown:
@@ -68,6 +70,8 @@ def check_result(
 	data: RevealRecord,
 	logger: Logger = getLogger(__name__),
 ) -> tuple[Literal[0, 1], Literal[0, 1], Literal[0, 1], Literal[1]]:
+	from z3 import unknown
+
 	assert len(results) == 1
 	result = results[0]
 

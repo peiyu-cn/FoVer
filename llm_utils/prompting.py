@@ -2,8 +2,12 @@ from typing import Sequence, Any
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from anthropic.types.message_param import MessageParam
-	from openai.types.chat import ChatCompletionMessageParam
+	from typing import Literal, TypedDict
+	from langchain.prompts.chat import MessageLikeRepresentation
+
+	class Message(TypedDict):
+		role: Literal['user', 'assistant']
+		content: str
 
 quote = '"""'
 assis = '## Assistant:'
@@ -11,7 +15,7 @@ retur = 'return l'
 
 def _parse_demo(
 	demo: str,
-) -> "Sequence[MessageParam]":
+) -> "Sequence[Message]":
 	user_idx = demo.find('## User:')
 	assistant_idx = demo.find(assis)
 	user_text = demo[user_idx:assistant_idx]
@@ -57,10 +61,10 @@ def get_demos(
 	return system, demos_message_pairs
 
 def get_messages(
-	msgs: "Sequence[Sequence[MessageParam]]",
+	msgs: "Sequence[Sequence[Message]]",
 	user: str,
-) -> "Sequence[MessageParam]":
-	messages: "Sequence[MessageParam]" = []
+) -> "Sequence[Message]":
+	messages: "Sequence[Message]" = []
 
 	for message_pair in msgs:
 		for message in message_pair:
@@ -73,4 +77,18 @@ def get_messages(
 		}
 	)
 
+	return messages
+
+def get_langchain_template(
+	system: str,
+	msgs: "Sequence[Sequence[Message]]",
+) -> "Sequence[MessageLikeRepresentation]":
+	messages: "Sequence[MessageLikeRepresentation]" = []
+	messages.append(('system', system)) # idiot pylance
+
+	for message_pair in msgs:
+		for message in message_pair:
+			messages.append((message["role"], message["content"]))
+	
+	messages.append(('user', '{user}'))
 	return messages
