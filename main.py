@@ -52,14 +52,15 @@ def langchain_request():
 
 def check():
 	# from dataset_utils.proofwriter import check_result, parse_record
-	from llm_utils.openai_response import check_batch_response
+	# from llm_utils.openai_response import check_batch_response
+	from llm_utils.langchain_response import check_langchain_response
 	from dataset_utils.reveal import check_result, get_reveal_data
 
 	source = get_reveal_data(filter = lambda record: record['dataset'] == 'strategy_qa')
 	source = source[0:10]
 
-	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
-		'data/batch_response/z3py-5-shot-v3-reveal-strategyqa-gpt4o0806-0000-0010.jsonl',
+	correct, wrong, llm_failed, z3_failed, total = check_langchain_response(
+		'data/langchain_response/z3py-5-shot-v3-reveal-strategyqa-claude35sonnet-0000-0010.json',
 		lambda i, results: check_result(results, source[i]),
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
@@ -67,5 +68,5 @@ def check():
 import logging
 logging.basicConfig(level=logging.INFO)
 
-langchain_request()
-# check()
+# langchain_request()
+check()

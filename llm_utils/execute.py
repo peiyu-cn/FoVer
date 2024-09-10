@@ -51,15 +51,3 @@ from z3_utils import Logic
 	except Exception as e:
 		logger.error('Failed to judge.')
 		return False, e
-
-def process_response(content: str):
-	content = content.strip()
-	if content.startswith('```'):
-		assert content.endswith('```')
-		lf_idx = content.find('\n')
-		assert lf_idx != -1
-		return content[lf_idx + 1:-3].rstrip()
-	else:
-		assert content.startswith('def ')
-		assert content.endswith('return l')
-		return content
