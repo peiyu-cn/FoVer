@@ -1,4 +1,4 @@
-from typing import Callable, Literal
+from typing import Callable, Optional
 
 from logging import Logger, getLogger
 import json
@@ -9,6 +9,7 @@ from .response import process_response, check_responses
 def check_langchain_response(
 	response_file_path: str,
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	prefill: Optional[str] = None,
 	logger: Logger = getLogger(__name__),
 ):
 	with open(response_file_path, 'r', encoding='utf-8') as file:
@@ -23,6 +24,8 @@ def check_langchain_response(
 			logger.error('Response #%d failed: %s', i, response['type'])
 			continue
 		try:
+			if prefill:
+				response = prefill + response
 			r = process_response(response)
 			responses.append(r)
 		except AssertionError as e:

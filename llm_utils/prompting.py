@@ -1,4 +1,4 @@
-from typing import Sequence, Any
+from typing import Optional, Sequence
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -82,6 +82,7 @@ def get_messages(
 def get_langchain_template(
 	system: str,
 	msgs: "Sequence[Sequence[Message]]",
+	prefill: Optional[str] = None,
 ) -> "Sequence[MessageLikeRepresentation]":
 	messages: "Sequence[MessageLikeRepresentation]" = []
 	messages.append(('system', system)) # idiot pylance
@@ -91,4 +92,6 @@ def get_langchain_template(
 			messages.append((message["role"], message["content"]))
 	
 	messages.append(('user', '{user}'))
+	if prefill:
+		messages.append(('assistant', prefill))
 	return messages

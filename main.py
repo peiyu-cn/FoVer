@@ -48,6 +48,7 @@ def langchain_request():
 		prompts[0:10],
 		model,
 		'data/langchain_response/z3py-5-shot-v3-reveal-strategyqa-claude35sonnet-0000-0010.json',
+		prefill='def',
 		max_concurrency=3,
 		retry_if_exception_type=(APIError,),
 	)
@@ -64,6 +65,7 @@ def check():
 	correct, wrong, llm_failed, z3_failed, total = check_langchain_response(
 		'data/langchain_response/z3py-5-shot-v3-reveal-strategyqa-claude35sonnet-0000-0010.json',
 		lambda i, results: check_result(results, source[i]),
+		prefill='def',
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
