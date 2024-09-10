@@ -22,9 +22,14 @@ def check_langchain_response(
 			failures.append(i)
 			logger.error('Response #%d failed: %s', i, response['type'])
 			continue
-		responses.append(process_response(response))
+		try:
+			r = process_response(response)
+			responses.append(r)
+		except AssertionError as e:
+			failures.append(i)
+			logger.error('Response #%d failed: %s', i, e)
 
-	i_r = list(set(range(len(responses))) - set(failures)) # [0, 1, 2, 3] -> [0, 1, 3, 6]
+	i_r = list(set(range(len(j))) - set(failures)) # [0, 1, 2, 3] -> [0, 1, 3, 6]
 	# i_map = {i: i_r.index(i) for i in i_r} # [0, 1, 3, 6] -> [0, 1, 2, 3]
 	def check_cb_wrapper(i: int, results: list[bool | CheckSatResult]):
 		"""

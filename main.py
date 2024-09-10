@@ -24,6 +24,7 @@ def request():
 
 def langchain_request():
 	from llm_utils.langchain_request import request_and_save, get_anthropic
+	from anthropic._exceptions import APIError
 	from private.apikey import anthropic_base_url, anthropic_key
 	from dataset_utils.reveal import generate_prompts
 
@@ -48,6 +49,7 @@ def langchain_request():
 		model,
 		'data/langchain_response/z3py-5-shot-v3-reveal-strategyqa-claude35sonnet-0000-0010.json',
 		max_concurrency=3,
+		retry_if_exception_type=(APIError,),
 	)
 
 def check():
