@@ -22,7 +22,8 @@ from z3_utils import Logic
 # %% System:
 """Extract logic to Z3 Python API from the given text.
 You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`.
-`Logic` is a pre-defined wrapper class."""
+`Logic` is a pre-defined wrapper class.
+Note that you should be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
 
 # %% [markdown] Bamboogle demos
 # ## Bamboogle demos
