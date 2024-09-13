@@ -1,7 +1,7 @@
 # %% imports
 from z3 import * # type: ignore
 
-from z3_utils import LogicBase, Logic, QALogic
+from z3_utils import Logic
 
 # %% [markdown] demos
 # ## Demo checklist:
@@ -42,51 +42,67 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # 
 	The war officially ended with an armistice agreement on July 27, 1953.
 
 	Target: The war that Neil Armstrong served ended on July 27, 1953.
+	Predicates: serve in, end on, last from to, end with.
+	Parameters of predicates:
+		serve in: Person serve in War
+			- Person
+			- War
+		end on: War end on Time
+			- Time
+		last from to: War last from Int to Int
+		end with: War end with Material
+			- Material
+	All sorts by now: Person, War, Time, Time range, Material.
+	Concepts: Neil Armstrong, Korean War, 1950, 1953, armistice agreement, July 27 1953.
+		- Neil Armstrong: Person
+		- Korean War: War
+		- 1950: Int
+		- 1953: Int
+		- armistice agreement: Material
+		- July 27, 1953: Time
+	Rest sorts: .
+	Implicit predicates: .
+	Supplimental predicates: .
+	All sorts: Person, War, Time, Material.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
 
-	# Define types.
-	Name = DeclareSort('Name')
+	# Define sorts.
+	Person = DeclareSort('Person')
 	War = DeclareSort('War')
-	Date = DeclareSort('Date')
-	# Define functions.
-	serve_in = Function('serve-in', Name, War) # (Name) -> War, Name serve in War. # The question implies that Neil Armstrong served in only one war, so this is a *-to-1 relation.
-	war_in = Function('war-in', War, IntSort(), BoolSort()) # (War, Int) -> Bool, War in Int. # Using int as input and bool as output because war time is *-to-1 relation.
-	war_end_on = Function('war-end-on', War, Date) # (War) -> Date, Event end on Date.
-	#  Target function:
-	war_served_end_on = Function('war-served-end-on', Name, Date) # (Name) -> Date, The war that Name served end on Date.
+	Time = DeclareSort('Time')
+	Material = DeclareSort('Material')
+	# Define predicates.
+	serve_in = Function('serve-in', Person, War) # (Person) -> War. # The question implies that Neil Armstrong served in only one war, so this is a *-to-1 relation.
+	end_on = Function('end-on', War, Time) # (War) -> Time.
+	war_in = Function('war-in (last)', War, IntSort(), BoolSort()) # (War, Int) -> Bool. War last from Int a to Int b means War in Int x (a <= x <= b).
+	end_with = Function('end-with', War, Material) # (War) -> Material. War end with Material.
 
 	# Arrange instances.
-	neilarmstrong = Const('Neil Armstrong', Name)
+	neilarmstrong = Const('Neil Armstrong', Person)
 	koreanwar = Const('Korean War', War)
-	july271953 = Const('July 27, 1953', Date)
+	armisticeagreement = Const('armistice agreement', Material)
+	july271953 = Const('July 27, 1953', Time)
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
 	i1, = Ints('i1')
-	n1, = Consts('n1', Name)
-	w1, = Consts('w1', War)
-	d1, = Consts('d1', Date)
 
 	#  Relation Definitions
-	l.definations = [
-		(
-			ForAll([n1, d1], (war_served_end_on(n1) == d1) == Exists([w1], And(serve_in(n1) == w1, war_end_on(w1) == d1))),
-			"The war that a person served in ended on a date if and only if the person served in that war and the war ended on that date."
-		),
-	]
+	l.definations = []
 	#  Claims from text
 	l.claims = [
 		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
-		(ForAll([i1], (war_in(koreanwar, i1)) == And(i1 >= 1950, i1 <= 1953)), "Korean War lasted from 1950 to 1953."),
-		(war_end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
+		(ForAll([i1], (war_in(koreanwar, i1) == And(i1 >= 1950, i1 <= 1953))), "Korean War lasted from 1950 to 1953."),
+		(end_with(koreanwar) == armisticeagreement, "Korean War ended with an armistice agreement."),
+		(end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
 	l.common_knowledge = []
 
 	# Target.
-	l.assertions = [(war_served_end_on(neilarmstrong) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
+	l.assertions = [(end_on(serve_in(neilarmstrong)) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
 
 	return l
 
@@ -102,45 +118,77 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Woodrow Wilson was president of the United States from 1913 to 1921.
 	
 	Target: Woodrow Wilson was president of the U.S. when superconductivity was discovered.
+	Predicates: discover in, discover by, be president of from to, be president of when.
+	Parameters of predicates:
+		discover in: New thing discover in Int
+			- New thing
+		discover by: New thing discover by Person
+			- Person
+		be president of from to: Person be president of Region from Int to Int
+			- Region
+		be president of when: Person be president of Region when Event happen
+			- Event
+	All sorts by now: New thing, Person, Region, Event.
+	Concepts: Superconductivity, 1911, Heike Kamerlingh Onnes, Woodrow Wilson, United States, 1913, 1921, U.S.
+		- Superconductivity: New thing
+		- 1911: Int
+		- Heike Kamerlingh Onnes: Person
+		- Woodrow Wilson: Person
+		- United States: Region
+		- 1913: Int
+		- 1921: Int
+		- U.S.: Region
+	Rest sorts: Event.
+		- Event:
+			- discover superconductivity
+	Implicit predicates: discover New thing -> Event.
+	Supplimental predicates: Event happen in -> Int.
+	# discover in can be removed, replaced by discover and happen in.
+	All sorts: New thing, Person, Region, Event.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
 
 	# Define types.
-	Name = DeclareSort('Name')
-	Event = DeclareSort('Event')
+	Newthing = DeclareSort('Newthing')
+	Person = DeclareSort('Person')
 	Region = DeclareSort('Region')
+	Event = DeclareSort('Event')
 	# Define functions.
-	president_of_when = Function('is-president-of-when', Name, Region, IntSort(), BoolSort()) # (Name, Region, Int) -> Bool Name is president of Region when Int. # Using int as input and bool as output because this is not *-to-1 relation.
-	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, Event happen in Int. # Using int as output because event time is *-to-1 relation.
-	#  Target function:
-	president_of_when_event = Function('is-president-of-when-event', Name, Region, Event, BoolSort()) # (Name, Region, Event) -> Bool, Name is president of Region when Event.
+	# discover_in has been removed.
+	discover_by = Function('discover-by', Newthing, Person) # (Newthing) -> Person, Newthing is discovered by Person.
+	president_of_in = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
+	president_of_when = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, Person is president of Region when Event happen. # Using Event as input and bool as output because this may not be *-to-1 relation.
+	discover = Function('discover', Newthing, Event) # (Newthing) -> Event, discover Newthing is Event.
+	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, Event happen in Int. # Using int as output because this is *-to-1 relation.
 
 	# Arrange instances.
-	discover_superconductivity = Const('discover-superconductivity', Event)
-	woodrowwilson = Const('Woodrow Wilson', Name)
-	us = Const('U.S.', Region)
+	superconductivity = Const('superconductivity', Newthing)
+	heikekamerlinghonnes = Const('Heike Kamerlingh Onnes', Person)
+	woodrowwilson = Const('Woodrow Wilson', Person)
 	unitedstates = Const('United States', Region)
+	us = Const('U.S.', Region)
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
 	i1, = Ints('i1')
-	n1, = Consts('n1', Name)
+	p1, = Consts('n1', Person)
 	e1, = Consts('e1', Event)
 	r1, = Consts('r1', Region)
 
 	#  Relation Definitions
 	l.definations = [
 		(
-			ForAll([n1, e1, r1], president_of_when_event(n1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_when(n1, r1, i1)))),
-			"A person was president when an event happened if and only if the event happened in the year that person was president."
+			ForAll([p1, e1, r1], president_of_when(p1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_in(p1, r1, i1)))),
+			"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
 		),
 	]
 	#  Claims from text
 	l.claims = [
-		(happen_in(discover_superconductivity) == 1911, "Superconductivity was discovered in 1911."),
+		(happen_in(discover(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
+		(discover_by(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
 		(
-			ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_when(woodrowwilson, unitedstates, i1)))),
+			ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_in(woodrowwilson, unitedstates, i1)))),
 			"Woodrow Wilson was president from 1913 to 1921.",
 		),
 	]
@@ -151,7 +199,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 
 	# Target.
 	l.assertions = [(
-		president_of_when_event(woodrowwilson, us, discover_superconductivity),
+		president_of_when(woodrowwilson, us, discover(superconductivity)),
 		"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
 	)]
 
@@ -190,97 +238,87 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	B. Mark visited his teacher Tony last night.
 	C. Mark didn't drive last night.
 	D. Mark didn't go to the gym last night.
+	Predicates: play in, visit, drive, have appointment, go to with, go to.
+	Parameters of predicates:
+		play in: Person play in Place when Time
+			- Person
+			- Place
+			- Time
+		visit: Person visit Person when Time
+		drive: Person drive when Time
+		have appointment: Person have appointment with Person before Time
+		go to with: Person go to Place with Person when Time
+		go to: Person go to Place when Time
+	All sorts by now: Person, Place, Time.
+	Concepts: last night, Mark, gym, Tony.
+		- last night: Time
+		- Mark: Person
+		- gym: Place
+		- Tony: Person
+	Rest sorts: .
+	Implicit predicates: .
+	Supplimental predicates: .
+	All sorts: Person, Place, Time.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
 
 	# Define types.
-	Name = DeclareSort('Name')
-	Action = DeclareSort('Action') # Action may contain names, places, and times.
+	Person = DeclareSort('Person')
 	Place = DeclareSort('Place')
 	Time = DeclareSort('Time')
 	# Define functions.
-	did = Function('did', Name, Action, BoolSort()) # (Name, Action) -> Bool, Name did Action.
-	did_with = Function('did-with', Name, Name, Action, BoolSort()) # (Name, Name, Action) -> Bool, Name did Action with Name.
-	did_to = Function('did-to', Name, Name, Action, BoolSort()) # (Name, Name, Action) -> Bool, Name did Action to Name.
-	did_at = Function('did-at', Name, Action, Place, BoolSort()) # (Name, Action, Place) -> Bool, Name did Action at Place.
-	did_when = Function('did-when', Name, Action, Time, BoolSort()) # (Name, Action, Time) -> Bool, Name did Action when Time.
-	at_when = Function('at-when', Name, Place, Time, BoolSort()) # (Name, Place, Time) -> Bool, Name is at Place when Time.
+	play_in_when = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
+	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool.
+	drive_when = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool.
+	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool.
+	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool.
+	go_to_when = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
 
 	# Arrange instances.
-	mark = Const('Mark', Name)
-	tony = Const('Tony', Name)
-	gym = Const('gym', Place)
-	playinthegym = Const('play in the gym', Action)
-	visittony = Const('visit Tony', Action)
-	drive = Const('drive', Action)
-	appointment = Const('have appointment', Action)
 	lastnight = Const('last night', Time)
+	mark = Const('Mark', Person)
+	gym = Const('gym', Place)
+	tony = Const('Tony', Person)
 
 	# Implementations.
 	#  Local placeholders that will be used by quantifiers.
-	n1, n2 = Consts('n1 n2', Name)
-	a1, = Consts('a1', Action)
-	p1, p2 = Consts('p1 p2', Place)
+	p1, p2 = Consts('p1 p2', Person)
+	pl1, = Consts('pl1', Place)
 	t1, = Consts('t1', Time)
 
 	#  Relation Definitions
 	l.definations = [
-		# relations of 'did'
+		# go to with when
 		(
-			ForAll([n1, n2, a1], Implies(did_with(n1, n2, a1), did(n1, a1))),
-			"If a person did an action with another person, then that person did that action."
+			ForAll([p1, p2, pl1, t1], Implies(go_to_with_when(p1, pl1, p2, t1), And(go_to_when(p1, pl1, t1), go_to_when(p2, pl1, t1)))),
+			"If a Person goes to a Place with another Person at a Time, then both Persons go to the Place at that Time."
 		),
+		# go to when
 		(
-			ForAll([n1, n2, a1], Implies(did_to(n1, n2, a1), did(n1, a1))),
-			"If a person did an action to another person, then that person did that action."
+			ForAll([p1, pl1, t1], Implies(play_in_when(p1, pl1, t1), go_to_when(p1, pl1, t1))),
+			"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time."
 		),
-		(
-			ForAll([n1, a1, p1], Implies(did_at(n1, a1, p1), did(n1, a1))),
-			"If a person did an action at a place, then that person did that action."
-		),
-		(
-			ForAll([n1, a1, t1], Implies(did_when(n1, a1, t1), did(n1, a1))),
-			"If a person did an action when a time, then that person did that action."
-		),
-		# relations of 'did-with'
-		(
-			ForAll([n1, n2, a1], did_with(n1, n2, a1) == did_with(n2, n1, a1)),
-			"If a person did an action with another person, then the other person did that action with the person."
-		),
-		# relations of 'at-when'
-		(
-			ForAll([n1, p1, t1], Implies(at_when(n1, p1, t1), 
-				ForAll([p2], (p2 == p1) == at_when(n1, p2, t1)))),
-			"If a person was at a place when a time, then the person was at only that place when that time."
-		),
-		(
-			ForAll([n1, a1, p1, t1], Implies(And(did_at(n1, a1, p1), did_when(n1, a1, t1)), at_when(n1, p1, t1))),
-		  	"If a person did an action at a place and when a time, then the person was at that place when that time."
-		)
 	]
 	#  Claims from text
 	l.claims = [
 		(
 			Xor(
-				And(did_at(mark, playinthegym, gym), did_when(mark, playinthegym, lastnight)),
-				And(did_to(mark, tony, visittony), did_when(mark, visittony, lastnight))
+				play_in_when(mark, gym, lastnight),
+				visit_when(mark, tony, lastnight)
 			),
 			"Last night, Mark either went to play in the gym or visited his teacher Tony."
 		),
 		(
-			Implies(
-				did_when(mark, drive, lastnight),
-				Not(did(mark, playinthegym))
-			),
+			Implies(drive_when(mark, lastnight), Not(play_in_when(mark, gym, lastnight))),
 			"If Mark drove last night, he didn't go to play in the gym."
 		),
 		(
-			Implies(did(mark, visittony), did_with(mark, tony, appointment)),
+			Implies(visit_when(mark, tony, lastnight), have_appointment_before(mark, tony, lastnight)),
 			"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
 		),
 		(
-			Not(did_with(mark, tony, appointment)),
+			Not(have_appointment_before(mark, tony, lastnight)),
 			"Mark had no appointment with his teacher Tony in advance."
 		),
 	]
@@ -291,15 +329,15 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	l.assertions = [
 		# Target 1.
 		(
-			And(at_when(mark, gym, lastnight), at_when(tony, gym, lastnight)),
+			go_to_with_when(mark, gym, tony, lastnight),
 			"Mark went to the gym with his teacher Tony last night."
 		),
 		# Target 2.
-		(did_to(mark, tony, visittony), "Mark visited his teacher Tony last night."),
+		(visit_when(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
 		# Target 3.
-		(Not(did_when(mark, drive, lastnight)), "Mark didn't drive last night."),
+		(Not(drive_when(mark, lastnight)), "Mark didn't drive last night."),
 		# Target 4.
-		(Not(at_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
+		(Not(go_to_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
 	]
 
 	return l
@@ -319,6 +357,20 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	the blue ball is smaller than C.
 
 	Target: A is red, B is blue, C is yellow.
+	Predicates: has color, has size.
+	Parameters of predicates:
+		has color: Ball has color Color
+			- Ball
+			- Color
+		has size: Ball has size Int # Any comparable type can be used for size. I just use Int for simplicity.
+	All sorts by now: Ball, Color.
+	Concepts: A, B, C, red, blue, yellow.
+		- A, B, C: Ball
+		- red, blue, yellow: Color
+	Rest sorts: .
+	Implicit predicates: .
+	Supplimental predicates: .
+	All sorts: Ball, Color.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
@@ -328,7 +380,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # This must be an enum so that Z3 knows that these 3 colors are different.
 	# Define functions.
 	color = Function('color', Ball, Color) # (Ball) -> Color, Ball is Color.
-	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int. # Any comparable type can be used for size. I just use Int for simplicity.
+	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int.
 
 	# Arrange instances.
 
@@ -367,9 +419,9 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 # 
 # Template: "Theory: <theory> Question: Which of the following statements can be inferred from the theory?: <statements>"
 
-# %% demo 5
+#- %% demo 5
 # from `meta-train.jsonl` line 1
-## User:
+##- User:
 """Theory:
 From a certain angle Dave is blue but he is young so maybe that will go away. My friend Eric is very young. People say he is nice for having a round shape. Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure. A kind, round person will surely be red as well. I have found that young, blue, and big individuals are also red. If smeone has a blue and green color, then they are young and probably kind. People that are green tend to be young. Somebody fitting a young, blue and round description will also fit a green description. Being cold and blue made them rough to deal with. A person that is known to be big and rough is also green, they will feel blue about it.
 
@@ -390,7 +442,7 @@ Q13. Harry is not cold.
 Q14. Bob is big.
 Q15. Bob is not round.
 Q16. Dave is nice."""
-## Assistant:
+##- Assistant:
 def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
 	"""
 	From a certain angle Dave is blue but he is young so maybe that will go away.
