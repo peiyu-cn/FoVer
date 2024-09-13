@@ -94,20 +94,15 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # 
 	#  Claims from text
 	l.claims = [
 		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
-		# serve_in(Person) -> War, OK.
 		(ForAll([i1], (war_in(koreanwar, i1) == And(i1 >= 1950, i1 <= 1953))), "Korean War lasted from 1950 to 1953."),
-		# war_in(War, Int) -> Bool, OK.
 		(end_with(koreanwar) == armisticeagreement, "Korean War ended with an armistice agreement."),
-		# end_with(War) -> Material, OK.
 		(end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
-		# end_on(War) -> Time, OK.
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
 	l.common_knowledge = []
 
 	# Target.
 	l.assertions = [(end_on(serve_in(neilarmstrong)) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
-	# serve_in(Person) -> War, end_on(War) -> Time, OK.
 
 	return l
 
@@ -185,31 +180,26 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	l.definations = [
 		(
 			ForAll([p1, e1, r1], president_of_when(p1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_in(p1, r1, i1)))),
-			# president_of_when(Person, Region, Event) -> Bool, happen_in(Event) -> Int, president_of_in(Person, Region, Int) -> Bool, OK.
 			"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
 		),
 	]
 	#  Claims from text
 	l.claims = [
 		(happen_in(discover(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
-		# discover(New thing) -> Event, happen_in(Event) -> Int, OK.
 		(discover_by(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
 		(
 			ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_in(woodrowwilson, unitedstates, i1)))),
-			# president_of_in(Person, Region, Int) -> Bool, OK.
 			"Woodrow Wilson was president from 1913 to 1921.",
 		),
 	]
 	#  Common knowledge that I know to be true and that support the reasoning process.
 	l.common_knowledge = [
 		(us == unitedstates, "U.S. is United States."),
-		# Region - Region, OK.
 	]
 
 	# Target.
 	l.assertions = [(
 		president_of_when(woodrowwilson, us, discover(superconductivity)),
-		# discover(New thing) -> Event, president_of_when(Person, Region, Event) -> Bool, OK.
 		"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
 	)]
 
@@ -302,13 +292,11 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		# go to with when
 		(
 			ForAll([p1, p2, pl1, t1], Implies(go_to_with_when(p1, pl1, p2, t1), And(go_to_when(p1, pl1, t1), go_to_when(p2, pl1, t1)))),
-			# go_to_with_when(Person, Place, Person, Time) -> Bool, go_to_when(Person, Place, Time) -> Bool, OK.
 			"If a Person goes to a Place with another Person at a Time, then both Persons go to the Place at that Time."
 		),
 		# go to when
 		(
 			ForAll([p1, pl1, t1], Implies(play_in_when(p1, pl1, t1), go_to_when(p1, pl1, t1))),
-			# play_in_when(Person, Place, Time) -> Bool, go_to_when(Person, Place, Time) -> Bool, OK.
 			"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time."
 		),
 	]
@@ -316,23 +304,21 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	l.claims = [
 		(
 			Xor(
-				play_in_when(mark, gym, lastnight), # play_in_when(Person, Place, Time) -> Bool, OK.
-				visit_when(mark, tony, lastnight) # visit_when(Person, Person, Time) -> Bool, OK.
+				play_in_when(mark, gym, lastnight),
+				visit_when(mark, tony, lastnight)
 			),
 			"Last night, Mark either went to play in the gym or visited his teacher Tony."
 		),
 		(
 			Implies(drive_when(mark, lastnight), Not(play_in_when(mark, gym, lastnight))),
-			# drive_when(Person, Time) -> Bool, play_in_when(Person, Place, Time) -> Bool, OK.
 			"If Mark drove last night, he didn't go to play in the gym."
 		),
 		(
 			Implies(visit_when(mark, tony, lastnight), have_appointment_before(mark, tony, lastnight)),
-			# visit_when(Person, Person, Time) -> Bool, have_appointment_before(Person, Person, Time) -> Bool, OK.
 			"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
 		),
 		(
-			Not(have_appointment_before(mark, tony, lastnight)), # have_appointment_before(Person, Person, Time) -> Bool, OK.
+			Not(have_appointment_before(mark, tony, lastnight)),
 			"Mark had no appointment with his teacher Tony in advance."
 		),
 	]
@@ -343,17 +329,15 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	l.assertions = [
 		# Target A.
 		(
-			go_to_with_when(mark, gym, tony, lastnight), # go_to_with_when(Person, Place, Person, Time) -> Bool, OK.
+			go_to_with_when(mark, gym, tony, lastnight),
 			"Mark went to the gym with his teacher Tony last night."
 		),
 		# Target B.
 		(visit_when(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
-		# visit_when(Person, Person, Time) -> Bool, OK.
 		# Target C.
-		(Not(drive_when(mark, lastnight)), "Mark didn't drive last night."), # drive_when(Person, Time) -> Bool, OK.
+		(Not(drive_when(mark, lastnight)), "Mark didn't drive last night."),
 		# Target D.
 		(Not(go_to_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
-		# go_to_when(Person, Place, Time) -> Bool, OK.
 	]
 
 	return l
@@ -409,15 +393,12 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 
 	#  Claims from text
 	l.claims = [
-		(Exists([b1], color(b1) == red), "One ball is red."), # color(Ball) -> Color, OK.
-		(Exists([b1], color(b1) == blue), "One ball is blue."), # color(Ball) -> Color, OK.
-		(Exists([b1], color(b1) == yellow), "One ball is yellow."), # color(Ball) -> Color, OK.
+		(Exists([b1], color(b1) == red), "One ball is red."),
+		(Exists([b1], color(b1) == blue), "One ball is blue."),
+		(Exists([b1], color(b1) == yellow), "One ball is yellow."),
 		(ForAll([b1], Implies(color(b1) == yellow, size(c) > size(b1))), "C is bigger than the yellow ball."),
-		# color(Ball) -> Color, size(Ball) -> Int, OK.
 		(ForAll([b1], Implies(color(b1) == blue, size(a) != size(b1))), "A and the blue ball are not the same size."),
-		# color(Ball) -> Color, size(Ball) -> Int, OK.
 		(ForAll([b1], Implies(color(b1) == blue, size(b1) < size(c))), "The blue ball is smaller than C."),
-		# color(Ball) -> Color, size(Ball) -> Int, OK.
 	]
 
 	#  Common knowledge that I know to be true and that support the reasoning process.
@@ -425,7 +406,6 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 
 	# Target.
 	l.assertions = [(And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow.")]
-	# color(Ball) -> Color, OK.
 
 	return l
 
