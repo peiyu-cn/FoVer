@@ -1,5 +1,6 @@
 from typing import Callable, Literal
 
+from logging import Logger, getLogger
 from z3 import CheckSatResult
 
 from .execute import execute_code
@@ -19,6 +20,7 @@ def process_response(content: str):
 def check_responses(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	logger: Logger = getLogger(__name__),
 ):
 	correct = 0
 	wrong = 0
@@ -31,7 +33,7 @@ def check_responses(
 		if execute_result[0] == False:
 			llm_failed += 1
 			total += 1
-			print(execute_result[1])
+			logger.error('Failed to execute #%d: %s', i, execute_result[1])
 			continue
 		else:
 			results = execute_result[1]
