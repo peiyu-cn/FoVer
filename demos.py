@@ -42,15 +42,15 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # 
 	The war officially ended with an armistice agreement on July 27, 1953.
 
 	Target: The war that Neil Armstrong served ended on July 27, 1953.
-	Predicates: serve in, end on, last from to, end with.
+	Predicates: serve in, last from to, end on, end with.
 	Parameters of predicates:
-		serve in: Person serve in War
+		serve in: Person serve in War, *-to-1, (Person) -> War. # The text implies that Neil Armstrong served in only one war.
 			- Person
 			- War
-		end on: War end on Time
+		end on: War end on Time, *-to-1, (War) -> Time.
 			- Time
-		last from to: War last from Int to Int
-		end with: War end with Material
+		last from to: War last from Int to Int, *-to-*, (War, Int) -> Bool. # I will use this pattern for all range relations.
+		end with: War end with Material, *-to-1, (War) -> Material. # Only single agreement is mentioned, *-to-1 is enough.
 			- Material
 	All sorts by now: Person, War, Time, Time range, Material.
 	Concepts: Neil Armstrong, Korean War, 1950, 1953, armistice agreement, July 27 1953.
@@ -74,7 +74,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # 
 	Time = DeclareSort('Time')
 	Material = DeclareSort('Material')
 	# Define predicates.
-	serve_in = Function('serve-in', Person, War) # (Person) -> War. # The question implies that Neil Armstrong served in only one war, so this is a *-to-1 relation.
+	serve_in = Function('serve-in', Person, War) # (Person) -> War.
 	end_on = Function('end-on', War, Time) # (War) -> Time.
 	war_in = Function('war-in (last)', War, IntSort(), BoolSort()) # (War, Int) -> Bool. War last from Int a to Int b means War in Int x (a <= x <= b).
 	end_with = Function('end-with', War, Material) # (War) -> Material. War end with Material.
@@ -120,13 +120,13 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Target: Woodrow Wilson was president of the U.S. when superconductivity was discovered.
 	Predicates: discover in, discover by, be president of from to, be president of when.
 	Parameters of predicates:
-		discover in: New thing discover in Int
+		discover in: New thing discover in Int, *-to-1, (New thing) -> Int.
 			- New thing
-		discover by: New thing discover by Person
+		discover by: New thing discover by Person, *-to-1, (New thing) -> Person.
 			- Person
-		be president of from to: Person be president of Region from Int to Int
+		be president of from to: Person be president of Region from Int to Int, *-to-*, (Person, Region, Int) -> Bool. # Range.
 			- Region
-		be president of when: Person be president of Region when Event happen
+		be president of when: Person be president of Region when Event happen, *-to-*, (Person, Region, Event) -> Bool. # There may be many events happen when a person is president of a region.
 			- Event
 	All sorts by now: New thing, Person, Region, Event.
 	Concepts: Superconductivity, 1911, Heike Kamerlingh Onnes, Woodrow Wilson, United States, 1913, 1921, U.S.
@@ -141,8 +141,8 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Rest sorts: Event.
 		- Event:
 			- discover superconductivity
-	Implicit predicates: discover New thing -> Event.
-	Supplimental predicates: Event happen in -> Int.
+	Implicit predicates: discover New thing = Event [(New thing) -> Event].
+	Supplimental predicates: Event happen in Int [(Event) -> Int].
 	# discover in can be removed, replaced by discover and happen in.
 	All sorts: New thing, Person, Region, Event.
 	"""
@@ -158,9 +158,9 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	# discover_in has been removed.
 	discover_by = Function('discover-by', Newthing, Person) # (Newthing) -> Person, Newthing is discovered by Person.
 	president_of_in = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
-	president_of_when = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, Person is president of Region when Event happen. # Using Event as input and bool as output because this may not be *-to-1 relation.
+	president_of_when = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, Person is president of Region when Event happen.
 	discover = Function('discover', Newthing, Event) # (Newthing) -> Event, discover Newthing is Event.
-	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, Event happen in Int. # Using int as output because this is *-to-1 relation.
+	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, Event happen in Int.
 
 	# Arrange instances.
 	superconductivity = Const('superconductivity', Newthing)
@@ -240,15 +240,15 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	D. Mark didn't go to the gym last night.
 	Predicates: play in, visit, drive, have appointment, go to with, go to.
 	Parameters of predicates:
-		play in: Person play in Place when Time
+		play in: Person play in Place when Time, *-to-*, (Person, Place, Time) -> Bool.
 			- Person
 			- Place
 			- Time
-		visit: Person visit Person when Time
-		drive: Person drive when Time
-		have appointment: Person have appointment with Person before Time
-		go to with: Person go to Place with Person when Time
-		go to: Person go to Place when Time
+		visit: Person visit Person when Time, *-to-*, (Person, Person, Time) -> Bool.
+		drive: Person drive when Time, *-to-*, (Person, Time) -> Bool.
+		have appointment: Person have appointment with Person before Time, *-to-*, (Person, Person, Time) -> Bool.
+		go to with: Person go to Place with Person when Time, *-to-*, (Person, Place, Person, Time) -> Bool.
+		go to: Person go to Place when Time, *-to-*, (Person, Place, Time) -> Bool.
 	All sorts by now: Person, Place, Time.
 	Concepts: last night, Mark, gym, Tony.
 		- last night: Time
@@ -357,12 +357,12 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	the blue ball is smaller than C.
 
 	Target: A is red, B is blue, C is yellow.
-	Predicates: has color, has size.
+	Predicates: has color, has size. # is red, is blue, is yellow can be unified under has color; is bigger, are not the same size, is smaller can be unified under has size.
 	Parameters of predicates:
-		has color: Ball has color Color
+		has color: Ball is Color, *-to-1, (Ball) -> Color.
 			- Ball
 			- Color
-		has size: Ball has size Int # Any comparable type can be used for size. I just use Int for simplicity.
+		has size: Ball has size Int, *-to-1, (Ball) -> Int. # Any comparable type can be used for size. I just use Int for simplicity.
 	All sorts by now: Ball, Color.
 	Concepts: A, B, C, red, blue, yellow.
 		- A, B, C: Ball
