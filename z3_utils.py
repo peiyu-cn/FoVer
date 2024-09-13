@@ -1,5 +1,6 @@
 from typing import Any, Callable, Tuple
 
+from logging import Logger, getLogger
 from z3 import * # type: ignore
 
 def verify(s: Solver, expr):
@@ -29,11 +30,16 @@ def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 		return unknown
 
 class LogicBase:
-	def __init__(self, use_common_knowledge=False, **kwargs):
+	def __init__(self,
+		use_common_knowledge = False,
+		logger: Logger = getLogger(__name__),
+		**kwargs
+	):
 		self.context = kwargs.get("context", None) or Context()
 		kwargs["ctx"] = self.context
 		self.s = Solver(**kwargs)
 		self.use_common_knowledge = use_common_knowledge
+		self._logger = logger
 		self._added = False
 
 	def _switch_context(self, exprs: list[Tuple[Any, str]]):
@@ -93,8 +99,11 @@ class LogicBase:
 				self._add2(self.common_knowledge)
 			self._added = True
 
+	def _get_expr(self, exprs: list[Tuple[Any, str]]):
+		return [expr for expr, _ in exprs]
+
 	def _add2(self, exprs: list[Tuple[Any, str]]) -> None:
-		self.s.add([expr for expr, _ in exprs])
+		self.s.add(self._get_expr(exprs))
 
 	def verify(self):
 		"""
@@ -145,6 +154,15 @@ class Logic(LogicBase):
 	@assertions.setter
 	def assertions(self, value: list[Tuple[Any, str]]):
 		self._assertions = self._switch_context(value)
+		for i, (assertion, _) in enumerate(self._assertions):
+			if assertion in self._get_expr(self.definations):
+				self._logger.error('Assertion #%d (%s) is inluded in definations.', i, assertion)
+				assert False, 'Definations should not include assertions.'
+			elif assertion in self._get_expr(self.common_knowledge):
+				self._logger.error('Assertion #%d (%s) is inluded in common knowledge.', i, assertion)
+				assert not self.use_common_knowledge, 'Common knowledge should not include assertions.'
+			elif assertion in self._get_expr(self.claims):
+				self._logger.warning('Assertion #%d (%s) is inluded in claims.', i, assertion)
 
 class QALogic(LogicBase):
 	def __init__(self, use_common_knowledge=False, **kwargs):
