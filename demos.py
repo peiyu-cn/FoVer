@@ -35,7 +35,7 @@ from z3_utils import Logic
 You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definations` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
 `Logic` is a pre-defined wrapper class. `definations`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[Any, str]]`, where the first element is a Z3 expression.
 Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
-When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them in advance.
+When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them in advance. Do NOT use existing concepts as quantifiers, and do NOT use one placeholder for different quantifiers in one statement. For example, `Forall([a], Implies(p(a), Exists([b], q(a, b))))` is OK, but `Forall([a], p(a) == Exists([a], q(a, a)))` (reuse a) and `Forall([a], Implies(p(a), q(a, b)))` (undefined b) are wrong. And declare `a, b = Consts('a b', ...)` in advance.
 Be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
 
 # %% [markdown] Bamboogle demos
@@ -283,10 +283,10 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	Time = DeclareSort('Time')
 	# Define functions.
 	play_in_when = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
-	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person x visit Person y when Time. # When a sort appears twice or more in one function, additional annotation is needed to distinguish them.
+	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person A visit Person B when Time. # When a sort appears twice or more in one function, additional annotation is needed to distinguish them.
 	drive_when = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool.
-	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person x have appointment with Person y before Time.
-	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, Person x go to Place with Person y when Time.
+	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person A have appointment with Person B before Time.
+	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, Person A go to Place with Person B when Time.
 	go_to_when = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
 
 	# Arrange instances.
@@ -306,7 +306,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		# go to with when
 		(
 			ForAll([p1, p2, pl1, t1], Implies(go_to_with_when(p1, pl1, p2, t1), And(go_to_when(p1, pl1, t1), go_to_when(p2, pl1, t1)))),
-			"If a Person goes to a Place with another Person at a Time, then both Persons go to the Place at that Time."
+			"If a Person A goes to a Place with Person B at a Time, then both Persons go to the Place at that Time."
 		),
 		# go to when
 		(
