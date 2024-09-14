@@ -141,84 +141,6 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 
 	return l
 
-# %% demo 2
-## User:
-"""Question: When did the war that Neil Armstrong served in end?
-Answer:
-Neil Armstrong served in the Korean War, which lasted from 1950 to 1953. The war officially ended with an armistice agreement on July 27, 1953. 
-
-So the final answer (the end date of the war) is: July 27, 1953."""
-## Assistant:
-def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # This function name exactly matches the target.
-	"""
-	Neil Armstrong served in the Korean War, which lasted from 1950 to 1953.
-	The war officially ended with an armistice agreement on July 27, 1953.
-
-	Target: The war that Neil Armstrong served ended on July 27, 1953.
-	Predicates: serve in, last from to, end on, end with.
-	Parameters of predicates:
-		serve in: Person serve in War, *-to-1, (Person) -> War. # The text implies that Neil Armstrong served in only one war.
-			- Person
-			- War
-		end on: War end on Time, *-to-1, (War) -> Time.
-			- Time
-		last from to: War last from Int to Int, *-to-*, (War, Int) -> Bool. # range.
-		end with: War end with Material, *-to-1, (War) -> Material. # Only single agreement is mentioned, *-to-1 is enough.
-			- Material
-	All sorts by now: Person, War, Time, Time range, Material.
-	Concepts: Neil Armstrong, Korean War, 1950, 1953, armistice agreement, July 27 1953.
-		- Neil Armstrong: Person
-		- Korean War: War
-		- 1950: Int
-		- 1953: Int
-		- armistice agreement: Material
-		- July 27, 1953: Time
-	Rest sorts: .
-	Implicit predicates: .
-	Supplimental predicates: .
-	All sorts: Person, War, Time, Material.
-	"""
-	# Initialize an instance of Logic with given arguments.
-	l = Logic(**kwargs)
-
-	# Define sorts.
-	Person = DeclareSort('Person')
-	War = DeclareSort('War')
-	Time = DeclareSort('Time')
-	Material = DeclareSort('Material')
-	# Define predicates.
-	serve_in = Function('serve-in', Person, War) # (Person) -> War.
-	end_on = Function('end-on', War, Time) # (War) -> Time.
-	war_in = Function('war-in (last)', War, IntSort(), BoolSort()) # (War, Int) -> Bool. War last from Int a to Int b means War in Int x (a <= x <= b).
-	end_with = Function('end-with', War, Material) # (War) -> Material. War end with Material.
-
-	# Arrange instances.
-	neilarmstrong = Const('Neil Armstrong', Person)
-	koreanwar = Const('Korean War', War)
-	armisticeagreement = Const('armistice agreement', Material)
-	july271953 = Const('July 27, 1953', Time)
-
-	# Implementations.
-	#  Local placeholders that will be used by quantifiers.
-	i1, = Ints('i1')
-
-	#  Relation Definitions
-	l.definations = []
-	#  Claims from text
-	l.claims = [
-		(serve_in(neilarmstrong) == koreanwar, "Neil Armstrong served in the Korean War."),
-		(ForAll([i1], (war_in(koreanwar, i1) == And(i1 >= 1950, i1 <= 1953))), "Korean War lasted from 1950 to 1953."),
-		(end_with(koreanwar) == armisticeagreement, "Korean War ended with an armistice agreement."),
-		(end_on(koreanwar) == july271953, "Korean War ended on July 27, 1953."),
-	]
-	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = []
-
-	# Target.
-	l.assertions = [(end_on(serve_in(neilarmstrong)) == july271953, "The war that Neil Armstrong served ended on July 27, 1953.")]
-
-	return l
-
 # %% [markdown] LogiQA 2.0 domos
 # ## LogiQA 2.0 demos
 # From LogiQA 2.0 (demo in the paper) (original multiple choice)
@@ -230,7 +152,7 @@ def the_war_that_neilarmstrong_served_ended_on_july271953(**kwargs) -> Logic: # 
 # C. Mark didn't drive last night.
 # D. Mark didn't go to the gym last night.
 
-# %% demo 3
+# %% demo 2
 # multiple choices
 ## User:
 """Last night, Mark either went to play in the gym or visited his teacher Tony. If Mark drove last night, he didn't go to play in the gym. Mark would go visit his teacher Tony only if he and his teacher had an appointment. In fact, Mark had no appointment with his teacher Tony in advance.
@@ -356,7 +278,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 
 	return l
 
-# %% demo 4
+# %% demo 3
 # converted NLI
 # from `QA2NLI/train.txt` line 4. label: not entailed
 ## User:
