@@ -283,10 +283,10 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	Time = DeclareSort('Time')
 	# Define functions.
 	play_in_when = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
-	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool.
+	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person x visit Person y when Time. # When a sort appears twice or more in one function, additional annotation is needed to distinguish them.
 	drive_when = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool.
-	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool.
-	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool.
+	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person x have appointment with Person y before Time.
+	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, Person x go to Place with Person y when Time.
 	go_to_when = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
 
 	# Arrange instances.
