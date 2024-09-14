@@ -53,7 +53,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes.
 	Woodrow Wilson was president of the United States from 1913 to 1921.
 	
-	Target: Woodrow Wilson was president of the U.S. when superconductivity was discovered.
+	Target: Woodrow Wilson was president of the U.S. when superconductivity was discovered. # The target is NOT 'Woodrow Wilson was president of the U.S. in 1911.'
 	Predicates: discover in, discover by, be president of from to, be president of when.
 	Parameters of predicates:
 		discover in: New thing discover in Int, *-to-1, (New thing) -> Int.
