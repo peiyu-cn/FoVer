@@ -48,7 +48,7 @@ Be careful when using defined Z3 functions, make sure the parameters and return 
 Answer:
 Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes. Woodrow Wilson was president of the United States from 1913 to 1921. So the final answer (the name of the president) is: Woodrow Wilson."""
 ## Assistant:
-def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic: # This function name exactly matches the target.
+def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic:
 	"""
 	Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes.
 	Woodrow Wilson was president of the United States from 1913 to 1921.
@@ -162,7 +162,7 @@ B. Mark visited his teacher Tony last night.
 C. Mark didn't drive last night.
 D. Mark didn't go to the gym last night."""
 ## Assistant:
-def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
+def multiple_targets_mark_either(**kwargs) -> Logic:
 	"""
 	Last night, Mark either went to play in the gym or visited his teacher Tony.
 	If Mark drove last night, he didn't go to play in the gym.
@@ -285,7 +285,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 """Premises: A, B, and C are three balls, one is red, one is blue, and the other is yellow. C is bigger than the yellow ball, A and the blue ball are not the same size, and the blue ball is smaller than C
 Conslusion: A is red, B is blue, C is yellow"""
 ## Assistant:
-def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly matches the target.
+def a_red_b_blue_c_yellow(**kwargs) -> Logic:
 	"""
 	A, B, and C are three balls, one is red, one is blue, and the other is yellow.
 	C is bigger than the yellow ball
