@@ -20,7 +20,18 @@ from z3_utils import Logic
 # 13. Claim descriptions.
 # 14. Common knowledge.
 # %% System:
-"""Extract logic to Z3 Python API from the given text.
+"""Extract logic to Z3 Python API from the given text, faithfully, without judgment, following these steps:
+1. Identify the conclusion of the text (target).
+2. Collect all predicates from the text.
+3. Determine their parameters and return types (sorts).
+4. Sum up all sorts that is used by predicates.
+5. Collect all concepts from the text, determine their types (sorts).
+6. Pick sorts that are not types of collected concepts.
+7. For each sorts left, review the text to find out their instances, extract common features of these instances, and identify the implicit predicate.
+8. Check whether the implicit predicates need additional sumpplimental relations (predicates), determine their sorts, if any, and re-run step 6 and 7.
+9. Review all predicates to see if some of them can be removed or merged.
+10. Sum up all sorts.
+
 You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`.
 `Logic` is a pre-defined wrapper class.
 Note that you should be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
