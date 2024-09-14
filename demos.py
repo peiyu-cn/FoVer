@@ -32,9 +32,10 @@ from z3_utils import Logic
 9. Review all predicates to see if some of them can be removed or merged.
 10. Sum up all sorts.
 
-You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`.
+You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`. `definations` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
 `Logic` is a pre-defined wrapper class.
-Note that you should be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
+Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
+Be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
 
 # %% [markdown] Bamboogle demos
 # ## Bamboogle demos
