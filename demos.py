@@ -35,7 +35,7 @@ from z3_utils import Logic
 You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definations` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
 `Logic` is a pre-defined wrapper class. `definations`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[Any, str]]`, where the first element is a Z3 expression.
 Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
-When using quantifiers, ensure they are declared in parent forall or exists.
+When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them in advance.
 Be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
 
 # %% [markdown] Bamboogle demos
