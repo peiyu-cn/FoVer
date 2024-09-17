@@ -369,9 +369,9 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 # 
 # Template: "Theory: <theory> Question: Which of the following statements can be inferred from the theory?: <statements>"
 
-# %% demo 4
+#- %% demo 4
 # from `meta-train.jsonl` line 1
-## User:
+##- User:
 """Theory:
 From a certain angle Dave is blue but he is young so maybe that will go away. My friend Eric is very young. People say he is nice for having a round shape. Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure. A kind, round person will surely be red as well. I have found that young, blue, and big individuals are also red. If smeone has a blue and green color, then they are young and probably kind. People that are green tend to be young. Somebody fitting a young, blue and round description will also fit a green description. Being cold and blue made them rough to deal with. A person that is known to be big and rough is also green, they will feel blue about it.
 
@@ -380,7 +380,7 @@ Q1. Harry is blue.
 Q6. Harry is not kind.
 Q11. Dave is not rough.
 Q12. Bob is young."""
-## Assistant:
+##- Assistant:
 def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
 	"""
 	From a certain angle Dave is blue but he is young so maybe that will go away.
