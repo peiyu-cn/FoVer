@@ -14,8 +14,8 @@ def openai_request():
 		assert isinstance(ids, list) # even more idiot
 	outfile = generate_batch(
 		prompts,
-		10, 10,
-		'z3py-5-shot-v3-reveal-strategyqa-gpt4o0806',
+		0, 20,
+		'z3py-3-shot-v6-reveal-strategyqa-gpt4o0806',
 		'gpt-4o-2024-08-06',
 		custom_ids=ids,
 	)
@@ -82,10 +82,27 @@ def langchain_check():
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
-import logging
-logging.basicConfig(level=logging.INFO)
+if __name__ == '__main__':
+	from argparse import ArgumentParser
+	import logging
 
-# request()
-# langchain_request()
-# openai_check()
-langchain_check()
+	parser = ArgumentParser()
+	parser.add_argument('mode',
+		choices=[
+			'openai_request',
+			'langchain_request',
+			'openai_check',
+			'langchain_check'
+		],
+		help='mode to run')
+	parser.add_argument('-l', '--log-level',
+		choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+		type=str.upper,
+		nargs='?',
+		help='set log level', default='INFO')
+	args = parser.parse_args()
+
+	if args.log_level:
+		logging.basicConfig(level=args.log_level.upper())
+	if args.mode:
+		globals()[args.mode]()
