@@ -369,30 +369,18 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 # 
 # Template: "Theory: <theory> Question: Which of the following statements can be inferred from the theory?: <statements>"
 
-#- %% demo 5
+# %% demo 4
 # from `meta-train.jsonl` line 1
-##- User:
+## User:
 """Theory:
 From a certain angle Dave is blue but he is young so maybe that will go away. My friend Eric is very young. People say he is nice for having a round shape. Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure. A kind, round person will surely be red as well. I have found that young, blue, and big individuals are also red. If smeone has a blue and green color, then they are young and probably kind. People that are green tend to be young. Somebody fitting a young, blue and round description will also fit a green description. Being cold and blue made them rough to deal with. A person that is known to be big and rough is also green, they will feel blue about it.
 
 Question: Which of the following statements can be inferred from the theory?
 Q1. Harry is blue.
-Q2. Harry is not blue.
-Q3. Harry is young.
-Q4. Harry is not young.
-Q5. Harry is kind.
 Q6. Harry is not kind.
-Q7. Harry is red.
-Q8. Harry is not red.
-Q9. Eric is not kind.
-Q10. Bob is kind.
 Q11. Dave is not rough.
-Q12. Bob is young.
-Q13. Harry is not cold.
-Q14. Bob is big.
-Q15. Bob is not round.
-Q16. Dave is nice."""
-##- Assistant:
+Q12. Bob is young."""
+## Assistant:
 def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
 	"""
 	From a certain angle Dave is blue but he is young so maybe that will go away.
@@ -409,21 +397,27 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 
 	Targets:
 	Q1. Harry is blue.
-	Q2. Harry is not blue.
-	Q3. Harry is young.
-	Q4. Harry is not young.
-	Q5. Harry is kind.
 	Q6. Harry is not kind.
-	Q7. Harry is red.
-	Q8. Harry is not red.
-	Q9. Eric is not kind.
-	Q10. Bob is kind.
 	Q11. Dave is not rough.
 	Q12. Bob is young.
-	Q13. Harry is not cold.
-	Q14. Bob is big.
-	Q15. Bob is not round.
-	Q16. Dave is nice.
+	Predicates: has feature (is). # All predicates can be unified under has feature (is).
+	Parameters of predicates:
+		has feature: Person is Feature, *-to-*, (Person, Feature) -> Bool.
+			- Person
+			- Feature
+	All sorts by now: Person, Feature.
+	Concepts: Dave, blue, young, Eric, nice, round, Harry, green, kind, red, big, cold, rough, Bob.
+		- Dave: Person
+		- blue, young: Feature
+		- Eric: Person
+		- nice, round: Feature
+		- Harry: Person
+		- green, kind, red, big, cold, rough: Feature
+		- Bob: Person
+	Rest sorts: .
+	Implicit predicates: .
+	Supplimental predicates: .
+	All sorts: Person, Feature.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
@@ -442,71 +436,66 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 	harry = Const('Harry', Person)
 	bob = Const('Bob', Person)
 
-	# Implementations.
-	#  Local placeholders that will be used by quantifiers.
+	# I'm not sure what quantifiers will be used, so I shall define them later.
+	def _store():
+		# Relation Definitions
+		l.definations = []
+		# Claims from text
+		l.claims = [
+			(has_feature(dave, blue), "From a certain angle Dave is blue."),
+			(has_feature(dave, young), "Dave is young."),
+			(has_feature(eric, young), "Eric is very young."),
+			(has_feature(eric, nice), "People say Eric is nice."),
+			(has_feature(eric, round), "Eric has a round shape."),
+			(has_feature(harry, blue), "Harry turned blue."),
+			(has_feature(harry, green), "Harry turned green."),
+			(has_feature(harry, round), "Harry has a round figure."),
+			(
+				# p1: Person
+				ForAll([p1], Implies(And(has_feature(p1, kind), has_feature(p1, round)), has_feature(p1, red))),
+				"A kind, round person will surely be red."
+			),
+			(
+				ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, big)), has_feature(p1, red))),
+				"Young, blue, and big individuals are also red."
+			),
+			(
+				ForAll([p1], Implies(And(has_feature(p1, blue), has_feature(p1, green)), And(has_feature(p1, young), has_feature(p1, kind)))),
+				"If someone has a blue and green color, then they are young and probably kind."
+			),
+			(ForAll([p1], Implies(has_feature(p1, green), has_feature(p1, young))), "People that are green tend to be young."),
+			(
+				ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, round)), has_feature(p1, green))),
+				"Somebody fitting a young, blue and round description will also fit a green description."
+			),
+			(
+				ForAll([p1], Implies(And(has_feature(p1, cold), has_feature(p1, blue)), has_feature(p1, rough))),
+				"Being cold and blue made them rough to deal with."
+			),
+			(
+				ForAll([p1], Implies(And(has_feature(p1, big), has_feature(p1, rough), has_feature(p1, green)), has_feature(p1, blue))),
+				"A person that is known to be big and rough is also green, they will feel blue about it."
+			),
+		]
+		# Common knowledge that I know to be true and that support the reasoning process.
+		l.common_knowledge = [
+			(
+				And(eric != dave, eric != harry, eric != bob, dave != harry, dave != bob, harry != bob),
+				"Eric, Dave, Harry, Bob are different persons."
+			),
+		]
+
+		# Targets that should be checked one by one.
+		l.assertions = [
+			(has_feature(harry, blue), "Harry is blue."),
+			(Not(has_feature(harry, kind)), "Harry is not kind."),
+			(Not(has_feature(dave, rough)), "Dave is not rough."),
+			(has_feature(bob, young), "Bob is young."),
+		]
+
+	# Define placeholders.
 	p1, = Consts('p1', Person)
 
-	#  Relation Definitions
-	l.definations = []
-
-	#  Claims from text
-	l.claims = [
-		(has_feature(dave, blue), "From a certain angle Dave is blue."),
-		(has_feature(dave, young), "Dave is young."),
-		(has_feature(eric, young), "Eric is very young."),
-		(has_feature(eric, nice), "People say Eric is nice."),
-		(has_feature(eric, round), "Eric has a round shape."),
-		(has_feature(harry, blue), "Harry turned blue."),
-		(has_feature(harry, green), "Harry turned green."),
-		(has_feature(harry, round), "Harry has a round figure."),
-		(
-			ForAll([p1], Implies(And(has_feature(p1, kind), has_feature(p1, round)), has_feature(p1, red))),
-			"A kind, round person will surely be red."
-		),
-		(
-			ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, big)), has_feature(p1, red))),
-			"Young, blue, and big individuals are also red."
-		),
-		(
-			ForAll([p1], Implies(And(has_feature(p1, blue), has_feature(p1, green)), And(has_feature(p1, young), has_feature(p1, kind)))),
-			"If someone has a blue and green color, then they are young and probably kind."
-		),
-		(ForAll([p1], Implies(has_feature(p1, green), has_feature(p1, young))), "People that are green tend to be young."),
-		(
-			ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, round)), has_feature(p1, green))),
-			"Somebody fitting a young, blue and round description will also fit a green description."
-		),
-		(
-			ForAll([p1], Implies(And(has_feature(p1, cold), has_feature(p1, blue)), has_feature(p1, rough))),
-			"Being cold and blue made them rough to deal with."
-		),
-		(
-			ForAll([p1], Implies(And(has_feature(p1, big), has_feature(p1, rough), has_feature(p1, green)), has_feature(p1, blue))),
-			"A person that is known to be big and rough is also green, they will feel blue about it."
-		),
-	]
-
-	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = []
-
-	# Targets that should be checked one by one.
-	l.assertions = [
-		(has_feature(harry, blue), "Harry is blue."),
-		(Not(has_feature(harry, blue)), "Harry is not blue."),
-		(has_feature(harry, young), "Harry is young."),
-		(Not(has_feature(harry, young)), "Harry is not young."),
-		(has_feature(harry, kind), "Harry is kind."),
-		(Not(has_feature(harry, kind)), "Harry is not kind."),
-		(has_feature(harry, red), "Harry is red."),
-		(Not(has_feature(harry, red)), "Harry is not red."),
-		(Not(has_feature(eric, kind)), "Eric is not kind."),
-		(has_feature(bob, kind), "Bob is kind."),
-		(Not(has_feature(dave, rough)), "Dave is not rough."),
-		(has_feature(bob, young), "Bob is young."),
-		(Not(has_feature(harry, cold)), "Harry is not cold."),
-		(has_feature(bob, big), "Bob is big."),
-		(Not(has_feature(bob, round)), "Bob is not round."),
-		(has_feature(dave, nice), "Dave is nice."),
-	]
+	_store()
 
 	return l
