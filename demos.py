@@ -262,7 +262,9 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 			),
 		]
 		# Common knowledge that I know to be true and that support the reasoning process.
-		l.common_knowledge = []
+		l.common_knowledge = [
+			(mark != tony, "Mark, Tony are different persons."),
+		]
 
 		# Targets that should be checked one by one.
 		l.assertions = [
@@ -322,8 +324,8 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	l = Logic(**kwargs)
 
 	# Define types.
-	Ball, (a, b, c) = EnumSort('Ball', ['A', 'B', 'C']) # A, B, C are three balls. # This must be an enum because there are and there are only 3 balls, which are different from one another.
-	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # This must be an enum so that Z3 knows that these 3 colors are different.
+	Ball, (a, b, c) = EnumSort('Ball', ['A', 'B', 'C']) # A, B, C are three balls. # Use enum to indicate there are and there are only 3 balls, which are different from one another.
+	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # I use enum so that Z3 knows these 3 colors are different; otherwise, I would have to explicitly state red != blue, red != yellow, blue != yellow.
 	# Define functions.
 	color = Function('color', Ball, Color) # (Ball) -> Color, Ball is Color.
 	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int.
