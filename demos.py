@@ -35,8 +35,8 @@ from z3_utils import Logic
 You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definations` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
 `Logic` is a pre-defined wrapper class. `definations`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[Any, str]]`, where the first element is a Z3 expression.
 Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
-When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them in advance.
-Be careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
+When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them.
+Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
 
 # %% [markdown] Bamboogle demos
 # ## Bamboogle demos
@@ -105,39 +105,44 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	unitedstates = Const('United States', Region)
 	us = Const('U.S.', Region)
 
-	# Implementations.
-	#  Local placeholders that will be used by quantifiers.
-	i1, = Ints('i1')
+	# I'm not sure what quantifiers will be used, so I shall define them later.
+	def _store():
+		# Relation Definitions
+		l.definations = [
+			(
+				# p1: Person, e1: Event, r1: Region
+				ForAll([p1, e1, r1], president_of_when(p1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_in(p1, r1, i1)))),
+				# i1: Int
+				"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
+			),
+		]
+		# Claims from text
+		l.claims = [
+			(happen_in(discover(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
+			(discover_by(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
+			(
+				ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_in(woodrowwilson, unitedstates, i1)))),
+				"Woodrow Wilson was president from 1913 to 1921.",
+			),
+		]
+		# Common knowledge that I know to be true and that support the reasoning process.
+		l.common_knowledge = [
+			(us == unitedstates, "U.S. is United States."),
+		]
+
+		# Target.
+		l.assertions = [(
+			president_of_when(woodrowwilson, us, discover(superconductivity)),
+			"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
+		)]
+
+	# Define placeholders.
 	p1, = Consts('n1', Person)
 	e1, = Consts('e1', Event)
 	r1, = Consts('r1', Region)
+	i1, = Ints('i1')
 
-	#  Relation Definitions
-	l.definations = [
-		(
-			ForAll([p1, e1, r1], president_of_when(p1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_in(p1, r1, i1)))),
-			"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
-		),
-	]
-	#  Claims from text
-	l.claims = [
-		(happen_in(discover(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
-		(discover_by(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
-		(
-			ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_in(woodrowwilson, unitedstates, i1)))),
-			"Woodrow Wilson was president from 1913 to 1921.",
-		),
-	]
-	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = [
-		(us == unitedstates, "U.S. is United States."),
-	]
-
-	# Target.
-	l.assertions = [(
-		president_of_when(woodrowwilson, us, discover(superconductivity)),
-		"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
-	)]
+	_store()
 
 	return l
 
@@ -217,64 +222,69 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	gym = Const('gym', Place)
 	tony = Const('Tony', Person)
 
-	# Implementations.
-	#  Local placeholders that will be used by quantifiers.
+	# I'm not sure what quantifiers will be used, so I shall define them later.
+	def _store():
+		# Relation Definitions
+		l.definations = [
+			# go to with when
+			(
+				# p1, p2: Person, pl1: Place, t1: Time
+				ForAll([p1, p2, pl1, t1], Implies(go_to_with_when(p1, pl1, p2, t1), And(go_to_when(p1, pl1, t1), go_to_when(p2, pl1, t1)))),
+				"If a Person A goes to a Place with Person B at a Time, then both Persons go to the Place at that Time."
+			),
+			# go to when
+			(
+				ForAll([p1, pl1, t1], Implies(play_in_when(p1, pl1, t1), go_to_when(p1, pl1, t1))),
+				"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time."
+			),
+		]
+		# Claims from text
+		l.claims = [
+			(
+				# either-or in this text indicates that two sides cannot be true at the same time.
+				Xor(
+					play_in_when(mark, gym, lastnight),
+					visit_when(mark, tony, lastnight)
+				),
+				"Last night, Mark either went to play in the gym or visited his teacher Tony."
+			),
+			(
+				Implies(drive_when(mark, lastnight), Not(play_in_when(mark, gym, lastnight))),
+				"If Mark drove last night, he didn't go to play in the gym."
+			),
+			(
+				Implies(visit_when(mark, tony, lastnight), have_appointment_before(mark, tony, lastnight)),
+				"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
+			),
+			(
+				Not(have_appointment_before(mark, tony, lastnight)),
+				"Mark had no appointment with his teacher Tony in advance."
+			),
+		]
+		# Common knowledge that I know to be true and that support the reasoning process.
+		l.common_knowledge = []
+
+		# Targets that should be checked one by one.
+		l.assertions = [
+			# Target A.
+			(
+				go_to_with_when(mark, gym, tony, lastnight),
+				"Mark went to the gym with his teacher Tony last night."
+			),
+			# Target B.
+			(visit_when(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
+			# Target C.
+			(Not(drive_when(mark, lastnight)), "Mark didn't drive last night."),
+			# Target D.
+			(Not(go_to_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
+		]
+
+	# Define placeholders.
 	p1, p2 = Consts('p1 p2', Person)
 	pl1, = Consts('pl1', Place)
 	t1, = Consts('t1', Time)
 
-	#  Relation Definitions
-	l.definations = [
-		# go to with when
-		(
-			ForAll([p1, p2, pl1, t1], Implies(go_to_with_when(p1, pl1, p2, t1), And(go_to_when(p1, pl1, t1), go_to_when(p2, pl1, t1)))),
-			"If a Person A goes to a Place with Person B at a Time, then both Persons go to the Place at that Time."
-		),
-		# go to when
-		(
-			ForAll([p1, pl1, t1], Implies(play_in_when(p1, pl1, t1), go_to_when(p1, pl1, t1))),
-			"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time."
-		),
-	]
-	#  Claims from text
-	l.claims = [
-		(
-			Xor(
-				play_in_when(mark, gym, lastnight),
-				visit_when(mark, tony, lastnight)
-			),
-			"Last night, Mark either went to play in the gym or visited his teacher Tony."
-		),
-		(
-			Implies(drive_when(mark, lastnight), Not(play_in_when(mark, gym, lastnight))),
-			"If Mark drove last night, he didn't go to play in the gym."
-		),
-		(
-			Implies(visit_when(mark, tony, lastnight), have_appointment_before(mark, tony, lastnight)),
-			"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
-		),
-		(
-			Not(have_appointment_before(mark, tony, lastnight)),
-			"Mark had no appointment with his teacher Tony in advance."
-		),
-	]
-	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = []
-
-	# Targets that should be checked one by one.
-	l.assertions = [
-		# Target A.
-		(
-			go_to_with_when(mark, gym, tony, lastnight),
-			"Mark went to the gym with his teacher Tony last night."
-		),
-		# Target B.
-		(visit_when(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
-		# Target C.
-		(Not(drive_when(mark, lastnight)), "Mark didn't drive last night."),
-		# Target D.
-		(Not(go_to_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
-	]
+	_store()
 
 	return l
 
@@ -320,28 +330,30 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 
 	# Arrange instances.
 
-	# Implementations.
-	#  Local placeholders that will be used by quantifiers.
+	# I'm not sure what quantifiers will be used, so I shall define them later.
+	def _store():
+		# Relation Definitions
+		l.definations = []
+		# Claims from text
+		l.claims = [
+			# b1: Ball
+			(Exists([b1], color(b1) == red), "One ball is red."),
+			(Exists([b1], color(b1) == blue), "One ball is blue."),
+			(Exists([b1], color(b1) == yellow), "One ball is yellow."),
+			(ForAll([b1], Implies(color(b1) == yellow, size(c) > size(b1))), "C is bigger than the yellow ball."),
+			(ForAll([b1], Implies(color(b1) == blue, size(a) != size(b1))), "A and the blue ball are not the same size."),
+			(ForAll([b1], Implies(color(b1) == blue, size(b1) < size(c))), "The blue ball is smaller than C."),
+		]
+		# Common knowledge that I know to be true and that support the reasoning process.
+		l.common_knowledge = []
+
+		# Target.
+		l.assertions = [(And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow.")]
+
+	# Define placeholders.
 	b1, = Consts('b1', Ball)
 
-	#  Relation Definitions
-	l.definations = []
-
-	#  Claims from text
-	l.claims = [
-		(Exists([b1], color(b1) == red), "One ball is red."),
-		(Exists([b1], color(b1) == blue), "One ball is blue."),
-		(Exists([b1], color(b1) == yellow), "One ball is yellow."),
-		(ForAll([b1], Implies(color(b1) == yellow, size(c) > size(b1))), "C is bigger than the yellow ball."),
-		(ForAll([b1], Implies(color(b1) == blue, size(a) != size(b1))), "A and the blue ball are not the same size."),
-		(ForAll([b1], Implies(color(b1) == blue, size(b1) < size(c))), "The blue ball is smaller than C."),
-	]
-
-	#  Common knowledge that I know to be true and that support the reasoning process.
-	l.common_knowledge = []
-
-	# Target.
-	l.assertions = [(And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow.")]
+	_store()
 
 	return l
 
