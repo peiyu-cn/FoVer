@@ -65,7 +65,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 			- New thing
 		discover by: New thing discover by Person, *-to-1, (New thing) -> Person.
 			- Person
-		be president of from to: Person be president of Region from Int to Int, *-to-*, (Person, Region, Int) -> Bool. # I will use this pattern for all range relations.
+		be president of from to: Person be president of Region from Int to Int, *-to-*, (Person, Region, Int) -> Bool. # I will use this pattern for all range relations, [Preson] be president of [Region] from [Int a] to [Int b] == [Person] be president of [Region] in [Int x] (a <= x <= b).
 			- Region
 		be president of when: Person be president of Region when Event happen, *-to-*, (Person, Region, Event) -> Bool. # There may be many events happen when a person is president of a region.
 			- Event
@@ -97,11 +97,11 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Event = DeclareSort('Event')
 	# Define functions.
 	# discover_in has been removed.
-	discover_by = Function('discover-by', Newthing, Person) # (Newthing) -> Person, Newthing is discovered by Person.
-	president_of_in = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
-	president_of_when = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, Person is president of Region when Event happen.
-	discover = Function('discover', Newthing, Event) # (Newthing) -> Event, discover Newthing is Event.
-	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, Event happen in Int.
+	discover_by = Function('discover-by', Newthing, Person) # (Newthing) -> Person, usage: discover-by(Newthing) = Person.
+	president_of_in = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, usage: president_of_in(Preson, Region, Int). # Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
+	president_of_when = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, usage: president_of_when(Person, Region, Event).
+	discover = Function('discover', Newthing, Event) # (Newthing) -> Event, usage: discover(Newthing) = Event.
+	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, usage: happen_in(Event) = Int.
 
 	# Arrange instances.
 	superconductivity = Const('superconductivity', Newthing)
@@ -214,12 +214,12 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	Place = DeclareSort('Place')
 	Time = DeclareSort('Time')
 	# Define functions.
-	play_in_when = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
-	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person A visit Person B when Time. # When a sort appears twice or more in one function, additional annotation is needed to distinguish them.
-	drive_when = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool.
-	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, Person A have appointment with Person B before Time.
-	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, Person A go to Place with Person B when Time.
-	go_to_when = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool.
+	play_in_when = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: play_in_when(Person, Place, Time).
+	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, usage: visit_when(Person [a], Person [b], Time), Person a visit Person b when Time.
+	drive_when = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool, usage: drive_when(Person, Time).
+	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, usage: have_appointment_before(Person [a], Person [b], Time), Person a and Person b have appointment before Time.
+	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, usage: go_to_with_when(Person [a], Place, Person [b], Time), Person a go to Place with Person b when Time.
+	go_to_when = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: go_to_when(Person, Place, Time).
 
 	# Arrange instances.
 	lastnight = Const('last night', Time)
@@ -329,13 +329,14 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	l = Logic(**kwargs)
 
 	# Define types.
-	Ball, (a, b, c) = EnumSort('Ball', ['A', 'B', 'C']) # A, B, C are three balls. # Use enum to indicate there are and there are only 3 balls, which are different from one another.
-	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # I use enum so that Z3 knows these 3 colors are different; otherwise, I would have to explicitly state red != blue, red != yellow, blue != yellow.
+	Ball = DeclareSort('Ball')
+	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # I use enum so that Z3 knows these 3 colors are different; otherwise, I must Distinct(red, blue, yellow).
 	# Define functions.
-	color = Function('color', Ball, Color) # (Ball) -> Color, Ball is Color.
-	size = Function('size', Ball, IntSort()) # (Ball) -> Int, Ball has size Int.
+	color = Function('color', Ball, Color) # (Ball) -> Color, usage: color(Ball) = Color. # I can't use `is` as function name because it is a reserved keyword.
+	size = Function('size', Ball, IntSort()) # (Ball) -> Int, usage: size(Ball) = Int.
 
 	# Arrange instances.
+	a, b, c = Consts('a b c', Ball)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
@@ -343,6 +344,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		l.definitions = []
 		# Claims from text
 		l.claims = [
+			(Distinct(a, b, c), "A, B, and C are three balls."),
 			# b1: Ball
 			(Exists([b1], color(b1) == red), "One ball is red."),
 			(Exists([b1], color(b1) == blue), "One ball is blue."),
@@ -485,7 +487,7 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 		# Common knowledge that I know to be true and that support the reasoning process.
 		l.common_knowledge = [
 			(
-				And(eric != dave, eric != harry, eric != bob, dave != harry, dave != bob, harry != bob),
+				Distinct(dave, eric, harry, bob),
 				"Eric, Dave, Harry, Bob are different persons."
 			),
 		]
