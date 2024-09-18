@@ -33,10 +33,15 @@ from z3_utils import Logic
 10. Sum up all sorts.
 
 You need to define a python function to store `definitions`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definitions` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
-`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[Any, str]]`, where the first element is a Z3 expression.
-Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
-When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them.
-Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
+`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`, where the first element of the tuple is a Z3 expression.
+
+NOTICE:
+- A concept belongs to ONLY ONE sort. If you find multiple, you find implicit predicates.
+- `common_knowledge` MUST be COMMON and TRUE.
+- Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
+- When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
+- Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
+I repeat, MAKE SURE the usage of defined Z3 functions matches their signatures and meanings."""
 
 # %% [markdown] Bamboogle demos
 # ## Bamboogle demos
@@ -75,7 +80,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		- 1921: Int
 		- U.S.: Region
 	Rest sorts: Event.
-		- Event:
+		- Event: # Concepts that form an event.
 			- discover superconductivity
 	Implicit predicates: discover New thing = Event [(New thing) -> Event].
 	Supplemental predicates: Event happen in Int [(Event) -> Int].
@@ -136,7 +141,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 			"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
 		)]
 
-	# Define placeholders.
+	# All placeholders used: p1: Person, e1: Event, r1: Region, i1: Int
 	p1, = Consts('n1', Person)
 	e1, = Consts('e1', Event)
 	r1, = Consts('r1', Region)
@@ -281,7 +286,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 			(Not(go_to_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
 		]
 
-	# Define placeholders.
+	# All placeholders used: p1, p2: Person, pl1: Place, t1: Time
 	p1, p2 = Consts('p1 p2', Person)
 	pl1, = Consts('pl1', Place)
 	t1, = Consts('t1', Time)
@@ -352,7 +357,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		# Target.
 		l.assertions = [(And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow.")]
 
-	# Define placeholders.
+	# All placeholders used: b1: Ball
 	b1, = Consts('b1', Ball)
 
 	_store()
@@ -493,7 +498,7 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 			(has_feature(bob, young), "Bob is young."),
 		]
 
-	# Define placeholders.
+	# All placeholders used: p1: Person
 	p1, = Consts('p1', Person)
 
 	_store()
