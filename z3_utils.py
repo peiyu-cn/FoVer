@@ -49,15 +49,15 @@ class LogicBase:
 		]
 
 	@property
-	def definations(self):
+	def definitions(self):
 		"""
 		Definations of defined relations.
 		"""
-		return self._definations
+		return self._definitions
 
-	@definations.setter
-	def definations(self, value: list[Tuple[Any, str]]):
-		self._definations = self._switch_context(value)
+	@definitions.setter
+	def definitions(self, value: list[Tuple[Any, str]]):
+		self._definitions = self._switch_context(value)
 
 	@property
 	def claims(self) -> list[Tuple[Any, str]]:
@@ -93,7 +93,7 @@ class LogicBase:
 		Add the premises to the solver.
 		"""
 		if not self._added:
-			self._add2(self.definations)
+			self._add2(self.definitions)
 			self._add2(self.claims)
 			if self.use_common_knowledge:
 				self._add2(self.common_knowledge)
@@ -155,8 +155,8 @@ class Logic(LogicBase):
 	def assertions(self, value: list[Tuple[Any, str]]):
 		self._assertions = self._switch_context(value)
 		for i, (assertion, _) in enumerate(self._assertions):
-			if assertion in self._get_expr(self.definations):
-				self._logger.error('Assertion #%d (%s) is inluded in definations.', i, assertion)
+			if assertion in self._get_expr(self.definitions):
+				self._logger.error('Assertion #%d (%s) is inluded in definitions.', i, assertion)
 				assert False, 'Definations should not include assertions.'
 			elif assertion in self._get_expr(self.common_knowledge):
 				self._logger.error('Assertion #%d (%s) is inluded in common knowledge.', i, assertion)

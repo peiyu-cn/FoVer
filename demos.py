@@ -28,12 +28,12 @@ from z3_utils import Logic
 5. Collect all concepts from the text, determine their types (sorts).
 6. Pick sorts that are not types of collected concepts.
 7. For each sorts left, review the text to find out their instances, extract common features of these instances, and identify the implicit predicate.
-8. Check whether the implicit predicates need additional sumpplimental relations (predicates), determine their sorts, if any, and re-run step 6 and 7.
+8. Check whether the implicit predicates need additional supplemental relations (predicates), determine their sorts, if any, and re-run step 6 and 7.
 9. Review all predicates to see if some of them can be removed or merged.
 10. Sum up all sorts.
 
-You need to define a python function to store `definations`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definations` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
-`Logic` is a pre-defined wrapper class. `definations`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[Any, str]]`, where the first element is a Z3 expression.
+You need to define a python function to store `definitions`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definitions` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
+`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[Any, str]]`, where the first element is a Z3 expression.
 Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
 When using quantifiers, ensure they are declared in parent forall or exists. And remember to define placeholders for them.
 Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures."""
@@ -78,7 +78,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		- Event:
 			- discover superconductivity
 	Implicit predicates: discover New thing = Event [(New thing) -> Event].
-	Supplimental predicates: Event happen in Int [(Event) -> Int].
+	Supplemental predicates: Event happen in Int [(Event) -> Int].
 	# discover in can be removed, replaced by discover and happen in.
 	All sorts: New thing, Person, Region, Event.
 	"""
@@ -108,7 +108,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definations = [
+		l.definitions = [
 			(
 				# p1: Person, e1: Event, r1: Region
 				ForAll([p1, e1, r1], president_of_when(p1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_in(p1, r1, i1)))),
@@ -198,7 +198,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		- Tony: Person
 	Rest sorts: .
 	Implicit predicates: .
-	Supplimental predicates: .
+	Supplemental predicates: .
 	All sorts: Person, Place, Time.
 	"""
 	# Initialize an instance of Logic with given arguments.
@@ -225,7 +225,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definations = [
+		l.definitions = [
 			# go to with when
 			(
 				# p1, p2: Person, pl1: Place, t1: Time
@@ -317,7 +317,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		- red, blue, yellow: Color
 	Rest sorts: .
 	Implicit predicates: .
-	Supplimental predicates: .
+	Supplemental predicates: .
 	All sorts: Ball, Color.
 	"""
 	# Initialize an instance of Logic with given arguments.
@@ -335,7 +335,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definations = []
+		l.definitions = []
 		# Claims from text
 		l.claims = [
 			# b1: Ball
@@ -416,7 +416,7 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 		- Bob: Person
 	Rest sorts: .
 	Implicit predicates: .
-	Supplimental predicates: .
+	Supplemental predicates: .
 	All sorts: Person, Feature.
 	"""
 	# Initialize an instance of Logic with given arguments.
@@ -439,7 +439,7 @@ def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definations = []
+		l.definitions = []
 		# Claims from text
 		l.claims = [
 			(has_feature(dave, blue), "From a certain angle Dave is blue."),
