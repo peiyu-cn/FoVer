@@ -37,7 +37,7 @@ You need to define a python function to store `definitions`, `claims`, `common_k
 
 NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit predicates.
-- `common_knowledge` MUST be COMMON and TRUE.
+- `common_knowledge` MUST be COMMON and objectively TRUE.
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
 - When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
 - Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
@@ -130,7 +130,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 				"Woodrow Wilson was president from 1913 to 1921.",
 			),
 		]
-		# Common knowledge that I know to be true and that support the reasoning process.
+		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = [
 			(us == unitedstates, "U.S. is United States."),
 		]
@@ -266,7 +266,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 				"Mark had no appointment with his teacher Tony in advance."
 			),
 		]
-		# Common knowledge that I know to be true and that support the reasoning process.
+		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = [
 			(mark != tony, "Mark, Tony are different persons."),
 		]
@@ -353,7 +353,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 			(ForAll([b1], Implies(color(b1) == blue, size(a) != size(b1))), "A and the blue ball are not the same size."),
 			(ForAll([b1], Implies(color(b1) == blue, size(b1) < size(c))), "The blue ball is smaller than C."),
 		]
-		# Common knowledge that I know to be true and that support the reasoning process.
+		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = []
 
 		# Target.
