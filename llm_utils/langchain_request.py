@@ -66,6 +66,7 @@ def get_anthropic(
 	streaming: bool = False,
 	temperature: float = 0,
 	top_p: float = 1,
+	max_tokens: int = 2048,
 	**kwargs,
 ):
 	from langchain_anthropic import ChatAnthropic
@@ -78,6 +79,7 @@ def get_anthropic(
 		streaming=streaming,
 		temperature=temperature,
 		top_p=top_p,
+		max_tokens_to_sample=max_tokens,
 		cache=SQLiteCache(f'cache/{model_name}-{task_id}.db'),
 		**kwargs,
 	)

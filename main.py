@@ -44,10 +44,10 @@ def langchain_request():
 		assert isinstance(prompts, list) # idiot pylance
 		assert isinstance(ids, list) # even more idiot
 	request_and_save(
-		ids[10:20],
-		prompts[10:20],
+		ids[0:20],
+		prompts[0:20],
 		model,
-		'data/langchain_response/z3py-5-shot-v3-reveal-strategyqa-claude35sonnet-0010-0020.json',
+		'data/langchain_response/z3py-3-shot-v6-reveal-strategyqa-claude35sonnet-0000-0020.json',
 		prefill='def',
 		max_concurrency=3,
 		retry_if_exception_type=(APIError,),
@@ -59,10 +59,10 @@ def openai_check():
 	from dataset_utils.reveal import check_result, get_reveal_data
 
 	source = get_reveal_data(filter = lambda record: record['dataset'] == 'strategy_qa')
-	source = source[10:20]
+	source = source[0:20]
 
 	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
-		'data/batch_response/z3py-5-shot-v3-reveal-strategyqa-gpt4o0806-0010-0020.jsonl',
+		'data/batch_response/z3py-3-shot-v6-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
 		lambda i, results: check_result(results, source[i]),
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
@@ -73,10 +73,10 @@ def langchain_check():
 	from dataset_utils.reveal import check_result, get_reveal_data
 
 	source = get_reveal_data(filter = lambda record: record['dataset'] == 'strategy_qa')
-	source = source[10:20]
+	source = source[0:20]
 
 	correct, wrong, llm_failed, z3_failed, total = check_langchain_response(
-		'data/langchain_response/z3py-5-shot-v3-reveal-strategyqa-claude35sonnet-0010-0020.json',
+		'data/langchain_response/z3py-3-shot-v6-reveal-strategyqa-claude35sonnet-0000-0020.json',
 		lambda i, results: check_result(results, source[i]),
 		prefill='def',
 	)
