@@ -33,11 +33,12 @@ from z3_utils import Logic
 10. Sum up all sorts.
 
 You need to define a python function to store `definitions`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definitions` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
-`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`, where the first element of the tuple is a Z3 expression.
+`Logic` is a pre-defined wrapper class.
 
 NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit predicates.
 - `common_knowledge` MUST be COMMON and objectively TRUE.
+- `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`, where the first element of the tuple is a Z3 expression. Do not miss or misuse the brackets of the tuple.
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
 - When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
 - Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
@@ -95,13 +96,15 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Person = DeclareSort('Person')
 	Region = DeclareSort('Region')
 	Event = DeclareSort('Event')
-	# Define functions.
+	# I shall use thease identifiers for placeholders: Newthing: n*, Person: p*, Region: r*, Event: e*.
+
+	# Define functions with usage comments.
 	# discover_in has been removed.
-	discover_by = Function('discover-by', Newthing, Person) # (Newthing) -> Person, usage: discover-by(Newthing) = Person.
-	president_of_in = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, usage: president_of_in(Preson, Region, Int). # Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
-	president_of_when = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, usage: president_of_when(Person, Region, Event).
-	discover = Function('discover', Newthing, Event) # (Newthing) -> Event, usage: discover(Newthing) = Event.
-	happen_in = Function('happen-in', Event, IntSort()) # (Event) -> Int, usage: happen_in(Event) = Int.
+	newthing_discover_by__person = Function('discover-by', Newthing, Person) # (Newthing) -> Person, usage: newthing_discover_by__person(Newthing) = Person.
+	person_president_of_region_in_int = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, usage: president_of_in(Preson, Region, Int). # Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
+	person_president_of_region_when_event = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, usage: person_president_of_region_when_event(Person, Region, Event).
+	discover_newthing__event = Function('discover', Newthing, Event) # (Newthing) -> Event, usage: discover_newthing__event(Newthing) = Event.
+	event_happen_in__int = Function('happen-in', Event, IntSort()) # (Event) -> Int, usage: event_happen_in__int(Event) = Int.
 
 	# Arrange instances.
 	superconductivity = Const('superconductivity', Newthing)
@@ -115,18 +118,17 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		# Relation Definitions
 		l.definitions = [
 			(
-				# p1: Person, e1: Event, r1: Region
-				ForAll([p1, e1, r1], president_of_when(p1, r1, e1) == Exists([i1], And(happen_in(e1) == i1, president_of_in(p1, r1, i1)))),
+				ForAll([p1, e1, r1], person_president_of_region_when_event(p1, r1, e1) == Exists([i1], And(event_happen_in__int(e1) == i1, person_president_of_region_in_int(p1, r1, i1)))),
 				# i1: Int
 				"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
 			),
 		]
 		# Claims from text
 		l.claims = [
-			(happen_in(discover(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
-			(discover_by(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
+			(event_happen_in__int(discover_newthing__event(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
+			(newthing_discover_by__person(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
 			(
-				ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (president_of_in(woodrowwilson, unitedstates, i1)))),
+				ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (person_president_of_region_in_int(woodrowwilson, unitedstates, i1)))),
 				"Woodrow Wilson was president from 1913 to 1921.",
 			),
 		]
@@ -137,7 +139,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 
 		# Target.
 		l.assertions = [(
-			president_of_when(woodrowwilson, us, discover(superconductivity)),
+			person_president_of_region_when_event(woodrowwilson, us, discover_newthing__event(superconductivity)),
 			"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
 		)]
 
@@ -213,13 +215,15 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	Person = DeclareSort('Person')
 	Place = DeclareSort('Place')
 	Time = DeclareSort('Time')
-	# Define functions.
-	play_in_when = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: play_in_when(Person, Place, Time).
-	visit_when = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, usage: visit_when(Person [a], Person [b], Time), Person a visit Person b when Time.
-	drive_when = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool, usage: drive_when(Person, Time).
-	have_appointment_before = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, usage: have_appointment_before(Person [a], Person [b], Time), Person a and Person b have appointment before Time.
-	go_to_with_when = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, usage: go_to_with_when(Person [a], Place, Person [b], Time), Person a go to Place with Person b when Time.
-	go_to_when = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: go_to_when(Person, Place, Time).
+	# I shall use thease identifiers for placeholders: Person: p*, Place: pl*, Time: t*.
+
+	# Define functions with usage comments.
+	person_play_in_place_when_time = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: person_play_in_place_when_time(Person, Place, Time).
+	person_visit_person_when_time = Function('visit-when', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, usage: person_visit_person_when_time(Person [a], Person [b], Time), Person a visit Person b when Time.
+	person_drive_when_time = Function('drive-when', Person, Time, BoolSort()) # (Person, Time) -> Bool, usage: person_drive_when_time(Person, Time).
+	person_have_appointment_with_person_before_time = Function('have-appointment-before', Person, Person, Time, BoolSort()) # (Person, Person, Time) -> Bool, usage: person_have_appointment_with_person_before_time(Person [a], Person [b], Time), Person a and Person b have appointment before Time.
+	person_go_to_place_with_person_when_time = Function('go-to-with-when', Person, Place, Person, Time, BoolSort()) # (Person, Place, Person, Time) -> Bool, usage: person_go_to_place_with_person_when_time(Person [a], Place, Person [b], Time), Person a go to Place with Person b when Time.
+	person_go_to_place_when_time = Function('go-to-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: person_go_to_place_when_time(Person, Place, Time).
 
 	# Arrange instances.
 	lastnight = Const('last night', Time)
@@ -233,13 +237,12 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		l.definitions = [
 			# go to with when
 			(
-				# p1, p2: Person, pl1: Place, t1: Time
-				ForAll([p1, p2, pl1, t1], Implies(go_to_with_when(p1, pl1, p2, t1), And(go_to_when(p1, pl1, t1), go_to_when(p2, pl1, t1)))),
+				ForAll([p1, p2, pl1, t1], Implies(person_go_to_place_with_person_when_time(p1, pl1, p2, t1), And(person_go_to_place_when_time(p1, pl1, t1), person_go_to_place_when_time(p2, pl1, t1)))),
 				"If a Person A goes to a Place with Person B at a Time, then both Persons go to the Place at that Time."
 			),
 			# go to when
 			(
-				ForAll([p1, pl1, t1], Implies(play_in_when(p1, pl1, t1), go_to_when(p1, pl1, t1))),
+				ForAll([p1, pl1, t1], Implies(person_play_in_place_when_time(p1, pl1, t1), person_go_to_place_when_time(p1, pl1, t1))),
 				"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time."
 			),
 		]
@@ -248,21 +251,21 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 			(
 				# either-or in this text indicates that two sides cannot be true at the same time.
 				Xor(
-					play_in_when(mark, gym, lastnight),
-					visit_when(mark, tony, lastnight)
+					person_play_in_place_when_time(mark, gym, lastnight),
+					person_visit_person_when_time(mark, tony, lastnight)
 				),
 				"Last night, Mark either went to play in the gym or visited his teacher Tony."
 			),
 			(
-				Implies(drive_when(mark, lastnight), Not(play_in_when(mark, gym, lastnight))),
+				Implies(person_drive_when_time(mark, lastnight), Not(person_play_in_place_when_time(mark, gym, lastnight))),
 				"If Mark drove last night, he didn't go to play in the gym."
 			),
 			(
-				Implies(visit_when(mark, tony, lastnight), have_appointment_before(mark, tony, lastnight)),
+				Implies(person_visit_person_when_time(mark, tony, lastnight), person_have_appointment_with_person_before_time(mark, tony, lastnight)),
 				"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
 			),
 			(
-				Not(have_appointment_before(mark, tony, lastnight)),
+				Not(person_have_appointment_with_person_before_time(mark, tony, lastnight)),
 				"Mark had no appointment with his teacher Tony in advance."
 			),
 		]
@@ -275,15 +278,15 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		l.assertions = [
 			# Target A.
 			(
-				go_to_with_when(mark, gym, tony, lastnight),
+				person_go_to_place_with_person_when_time(mark, gym, tony, lastnight),
 				"Mark went to the gym with his teacher Tony last night."
 			),
 			# Target B.
-			(visit_when(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
+			(person_visit_person_when_time(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
 			# Target C.
-			(Not(drive_when(mark, lastnight)), "Mark didn't drive last night."),
+			(Not(person_drive_when_time(mark, lastnight)), "Mark didn't drive last night."),
 			# Target D.
-			(Not(go_to_when(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
+			(Not(person_go_to_place_when_time(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
 		]
 
 	# All placeholders used: p1, p2: Person, pl1: Place, t1: Time
@@ -331,12 +334,14 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	# Define types.
 	Ball = DeclareSort('Ball')
 	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # I use enum so that Z3 knows these 3 colors are different; otherwise, I must Distinct(red, blue, yellow).
-	# Define functions.
-	color = Function('color', Ball, Color) # (Ball) -> Color, usage: color(Ball) = Color. # I can't use `is` as function name because it is a reserved keyword.
-	size = Function('size', Ball, IntSort()) # (Ball) -> Int, usage: size(Ball) = Int.
+	# I shall use thease identifiers for placeholders: Ball: b*, Color: c*.
+
+	# Define functions with usage comments.
+	ball_is__color = Function('is', Ball, Color) # (Ball) -> Color, usage: ball_is__color(Ball) = Color.
+	ball_size__int = Function('size', Ball, IntSort()) # (Ball) -> Int, usage: ball_size__int(Ball) = Int.
 
 	# Arrange instances.
-	a, b, c = Consts('a b c', Ball)
+	a, b, c = Consts('A B C', Ball)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
@@ -345,19 +350,18 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		# Claims from text
 		l.claims = [
 			(Distinct(a, b, c), "A, B, and C are three balls."),
-			# b1: Ball
-			(Exists([b1], color(b1) == red), "One ball is red."),
-			(Exists([b1], color(b1) == blue), "One ball is blue."),
-			(Exists([b1], color(b1) == yellow), "One ball is yellow."),
-			(ForAll([b1], Implies(color(b1) == yellow, size(c) > size(b1))), "C is bigger than the yellow ball."),
-			(ForAll([b1], Implies(color(b1) == blue, size(a) != size(b1))), "A and the blue ball are not the same size."),
-			(ForAll([b1], Implies(color(b1) == blue, size(b1) < size(c))), "The blue ball is smaller than C."),
+			(Exists([b1], ball_is__color(b1) == red), "One ball is red."),
+			(Exists([b1], ball_is__color(b1) == blue), "One ball is blue."),
+			(Exists([b1], ball_is__color(b1) == yellow), "One ball is yellow."),
+			(ForAll([b1], Implies(ball_is__color(b1) == yellow, ball_size__int(c) > ball_size__int(b1))), "C is bigger than the yellow ball."),
+			(ForAll([b1], Implies(ball_is__color(b1) == blue, ball_size__int(a) != ball_size__int(b1))), "A and the blue ball are not the same size."),
+			(ForAll([b1], Implies(ball_is__color(b1) == blue, ball_size__int(b1) < ball_size__int(c))), "The blue ball is smaller than C."),
 		]
 		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = []
 
 		# Target.
-		l.assertions = [(And(color(a) == red, color(b) == blue, color(c) == yellow), "A is red, B is blue, C is yellow.")]
+		l.assertions = [(And(ball_is__color(a) == red, ball_is__color(b) == blue, ball_is__color(c) == yellow), "A is red, B is blue, C is yellow.")]
 
 	# All placeholders used: b1: Ball
 	b1, = Consts('b1', Ball)
