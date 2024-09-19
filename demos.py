@@ -33,11 +33,11 @@ from z3_utils import Logic
 10. Sum up all sorts.
 
 You need to define a python function to store `definitions`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definitions` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned premises that are true and support the reasoning process, but are not restatement of the conclusion.
-`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`, where the first element of the tuple is a Z3 expression, and the second element is the description. Do not miss or misuse the brackets of the tuple. Example of `common_knowledge`: [(a == b, "a and b are same."), (ForAll([x], Implies(P(x), S(x))), "All P are S.")].
+`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`.
 
 NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit predicates.
-- `common_knowledge` MUST be COMMON and objectively TRUE.
+- `common_knowledge` MUST be COMMON and objectively TRUE. (elements of `common_knowledge` are still `tuple[expr, str]`.)
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
 - When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
 - Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
