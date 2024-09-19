@@ -11,16 +11,11 @@ def get_function_name(code: str) -> str:
 	assert isinstance(node, ast.FunctionDef)
 	return node.name
 
-#def _switch_sort_context(
-#	sort: Literal['DeclareSort', 'EnumSort'],
-#	code: str
-#) -> str:
-#	return re.sub(sort + r'\(([^\(]+)\)', sort + r'(\1, ctx=l.context)', code, flags=re.MULTILINE)
-
 def _switch_sorts_context(code: str) -> str:
+	return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
 	#code = _switch_sort_context('DeclareSort', code)
 	#code = _switch_sort_context('EnumSort', code)
-	code = re.sub(r'([A-Z][a-z]+Sort)\(([^\(]+)\)', r'\1(\2, ctx=l.context)', code, flags=re.MULTILINE)
+	code = re.sub(r'([A-Z][a-z]+Sort)\(([^\(^\)]+)\)', r'\1(\2, ctx=l.context)', code, flags=re.MULTILINE)
 	code = re.sub(r'([A-Z][a-z]+Sort)\(\)', r'\1(ctx=l.context)', code)
 	return code
 
