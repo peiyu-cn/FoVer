@@ -1,4 +1,4 @@
-from typing import Any, Callable, Tuple
+from typing import Any, Callable, Literal, Tuple
 
 from logging import Logger, getLogger
 from z3 import * # type: ignore
@@ -29,6 +29,12 @@ def judge(r1: CheckSatResult, r2: CheckSatResult) -> bool | CheckSatResult:
 	else:
 		return unknown
 
+Expr = (
+	PatternRef | QuantifierRef | BoolRef | IntNumRef | ArithRef | RatNumRef |
+	AlgebraicNumRef | BitVecNumRef | BitVecRef | ArrayRef | DatatypeRef |
+	FPNumRef | FPRef | FiniteDomainNumRef | FiniteDomainRef | FPRMRef | SeqRef | CharRef | ReRef | ExprRef
+)
+
 class LogicBase:
 	def __init__(self,
 		use_common_knowledge = False,
@@ -42,7 +48,26 @@ class LogicBase:
 		self._logger = logger
 		self._added = False
 
-	def _switch_context(self, exprs: list[Tuple[Any, str]]):
+	def _preprocess(self,
+		property_name: Literal['definitions', 'claims', 'common_knowledge', 'assertions'],
+		exprs: list[Tuple[Expr, str]]
+	):
+		assert isinstance(exprs, list), f'Expected {property_name} to be list, but got {type(exprs)}'
+		if len(exprs) == 2 and isinstance(exprs[0], Expr) and isinstance(exprs[1], str):
+			self._logger.warning('Unwrapped tuple in %s: %s', property_name, exprs[1])
+			exprs = [(exprs[0], exprs[1])] # idiot Pylance
+
+		for i, t in enumerate(exprs):
+			assert isinstance(t, tuple), f'Expected {property_name}[{i}] to be tuple, but got {type(t)}'
+			assert len(t) == 2, f'Expected tuple {property_name}[{i}] to have length 2, but got {len(t)}'
+			a, b = t
+			assert isinstance(b, str), f'Expected {property_name}[{i}][1] to be str, but got {type(b)}'
+			if not isinstance(a, Expr):
+				self._logger.warning('Unexpected type %s of %s[%d][0]', type(a), property_name, i)
+
+		return self._switch_context(exprs)
+
+	def _switch_context(self, exprs: list[Tuple[Expr, str]]):
 		return [
 			(expr.translate(self.context), desc)
 			for expr, desc in exprs
@@ -51,13 +76,13 @@ class LogicBase:
 	@property
 	def definitions(self):
 		"""
-		Definations of defined relations.
+		Definitions of defined relations.
 		"""
 		return self._definitions
 
 	@definitions.setter
 	def definitions(self, value: list[Tuple[Any, str]]):
-		self._definitions = self._switch_context(value)
+		self._definitions = self._preprocess('definitions', value)
 
 	@property
 	def claims(self) -> list[Tuple[Any, str]]:
@@ -68,7 +93,7 @@ class LogicBase:
 
 	@claims.setter
 	def claims(self, value: list[Tuple[Any, str]]):
-		self._claims = self._switch_context(value)
+		self._claims = self._preprocess('claims', value)
 
 	@property
 	def common_knowledge(self) -> list[Tuple[Any, str]]:
@@ -79,10 +104,10 @@ class LogicBase:
 
 	@common_knowledge.setter
 	def common_knowledge(self, value: list[Tuple[Any, str]]):
-		self._common_knowledge = self._switch_context(value)
+		self._common_knowledge = self._preprocess('common_knowledge', value)
 
 	@property
-	def assertions(self) -> list[Tuple[BoolRef, str]]:
+	def assertions(self) -> list[Tuple[BoolRef | QuantifierRef, str]]:
 		"""
 		Target conclusions to be verified.
 		"""
@@ -124,7 +149,7 @@ class LogicBase:
 			for r1, r2 in self.verify()
 		]
 
-	def to_conjuction(self):
+	def to_conjunction(self):
 		"""
 		Get all added expressions in the solver as a conjunction.
 		"""
@@ -135,29 +160,29 @@ class LogicBase:
 		"""
 		Simplify the premises.
 		"""
-		return simplify(self.to_conjuction())
+		return simplify(self.to_conjunction())
 
 	def solve(self):
 		"""
 		Solve the premises.
 		"""
-		return solve(self.to_conjuction())
+		return solve(self.to_conjunction())
 
 class Logic(LogicBase):
-	def __init__(self, **kwargs):
-		super().__init__(**kwargs)
+	def __init__(self, use_common_knowledge=True, **kwargs):
+		super().__init__(use_common_knowledge, **kwargs)
 
 	@property
-	def assertions(self) -> list[Tuple[BoolRef, str]]:
-		return self._assertions
+	def assertions(self) -> list[Tuple[BoolRef | QuantifierRef, str]]:
+		return self._assertions # type: ignore
 
 	@assertions.setter
 	def assertions(self, value: list[Tuple[Any, str]]):
-		self._assertions = self._switch_context(value)
+		self._assertions = self._preprocess('assertions', value)
 		for i, (assertion, _) in enumerate(self._assertions):
 			if assertion in self._get_expr(self.definitions):
 				self._logger.error('Assertion #%d (%s) is inluded in definitions.', i, assertion)
-				assert False, 'Definations should not include assertions.'
+				assert False, 'Definitions should not include assertions.'
 			elif assertion in self._get_expr(self.common_knowledge):
 				self._logger.error('Assertion #%d (%s) is inluded in common knowledge.', i, assertion)
 				assert not self.use_common_knowledge, 'Common knowledge should not include assertions.'

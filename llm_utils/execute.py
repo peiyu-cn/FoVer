@@ -11,8 +11,18 @@ def get_function_name(code: str) -> str:
 	assert isinstance(node, ast.FunctionDef)
 	return node.name
 
-def _switch_enum_context(code: str) -> str:
-	return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
+#def _switch_sort_context(
+#	sort: Literal['DeclareSort', 'EnumSort'],
+#	code: str
+#) -> str:
+#	return re.sub(sort + r'\(([^\(]+)\)', sort + r'(\1, ctx=l.context)', code, flags=re.MULTILINE)
+
+def _switch_sorts_context(code: str) -> str:
+	#code = _switch_sort_context('DeclareSort', code)
+	#code = _switch_sort_context('EnumSort', code)
+	code = re.sub(r'([A-Z][a-z]+Sort)\(([^\(]+)\)', r'\1(\2, ctx=l.context)', code, flags=re.MULTILINE)
+	code = re.sub(r'([A-Z][a-z]+Sort)\(\)', r'\1(ctx=l.context)', code)
+	return code
 
 def execute_code(
 	code: str,
@@ -24,7 +34,7 @@ def execute_code(
 from z3_utils import Logic
 ''', context)
 	try:
-		code = _switch_enum_context(code)
+		code = _switch_sorts_context(code)
 		exec(code, context)
 		logger.debug('Code imported.')
 	except Exception as e:
