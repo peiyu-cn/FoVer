@@ -3,6 +3,8 @@ from typing import Any, Callable, Literal, Tuple
 from logging import Logger, getLogger
 from z3 import * # type: ignore
 
+from typing import TYPE_CHECKING
+
 def verify(s: Solver, expr):
 	assert s.check() == sat # sanity check
 
@@ -56,9 +58,20 @@ class LogicBase:
 		if len(exprs) == 2 and isinstance(exprs[0], Expr) and isinstance(exprs[1], str):
 			self._logger.warning('Unwrapped tuple in %s: %s', property_name, exprs[1])
 			exprs = [(exprs[0], exprs[1])] # idiot Pylance
+			return self._switch_context(exprs)
 
 		for i, t in enumerate(exprs):
-			assert isinstance(t, tuple), f'Expected {property_name}[{i}] to be tuple, but got {type(t)}'
+			if not isinstance(t, tuple):
+				self._logger.warning('Expected %s[%d] to be tuple, but got %s', property_name, i, type(t))
+				self._logger.debug('Assuming %s to be [Expr]', property_name)
+				all_expr = True
+				for e in exprs:
+					if not isinstance(e, Expr):
+						all_expr = False
+						break
+				assert all_expr, 'All elements should be Expr if not (Expr, str).'
+				exprs = [(e, '') for e in exprs] # type: ignore # idiot Pylance
+				break
 			assert len(t) == 2, f'Expected tuple {property_name}[{i}] to have length 2, but got {len(t)}'
 			a, b = t
 			assert isinstance(b, str), f'Expected {property_name}[{i}][1] to be str, but got {type(b)}'
