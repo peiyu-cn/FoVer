@@ -81,9 +81,9 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		- 1913: Int
 		- 1921: Int
 		- U.S.: Region
-	Rest sorts: Event.
+	Rest sorts: Event. # Sorts to which no concept above belongs.
 		- Event:
-			Concepts: # What constitutes an event.
+			Concepts: # What constitutes an Event.
 				- discover superconductivity
 			Implicit predicates:
 				- discover: discover New thing is Event, 1-to-1, (New thing) -> Event.
@@ -144,6 +144,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		]
 		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = [
+			# Clarify relations among multiple instances of a sort, if any.
 			(us == unitedstates, "U.S. is United States."),
 		]
 		# Target.
@@ -283,6 +284,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		]
 		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = [
+			# Clarify relations among multiple instances of a sort, if any.
 			(Distinct(mark, tony), "Mark, Tony are different persons."),
 		]
 		# Targets that should be checked one by one.
@@ -370,7 +372,10 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(b1) < b_size__int(c))), "The blue ball is smaller than C."),
 		]
 		# Common knowledge that are true and that support the reasoning process.
-		l.common_knowledge = []
+		l.common_knowledge = [
+			# Clarify relations among multiple instances of a sort, if any.
+			# The relations of Ball and Color have been clarified in claims and EnumSort.
+		]
 		# Target.
 		l.assertions = [(And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow), "A is red, B is blue, C is yellow.")]
 
