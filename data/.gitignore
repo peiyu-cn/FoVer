@@ -1,0 +1,6 @@
+*
+!.gitignore
+!README*
+
+# Do not add white list here. Manually add folders/files with `git add -f` if needed.
+#!reveal
