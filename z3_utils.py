@@ -1,7 +1,7 @@
 from typing import Any, Callable, Literal, Tuple
 
 from logging import Logger, getLogger
-from z3 import * # type: ignore
+from z3.z3 import * # type: ignore
 
 from typing import TYPE_CHECKING
 
@@ -81,8 +81,9 @@ class LogicBase:
 		return self._switch_context(exprs)
 
 	def _switch_context(self, exprs: list[Tuple[Expr, str]]):
+		return exprs
 		return [
-			(expr.translate(self.context), desc)
+			(expr.translate(self.context) if expr.ctx != self.context else expr, desc)
 			for expr, desc in exprs
 		]
 

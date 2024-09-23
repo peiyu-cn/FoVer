@@ -1,6 +1,6 @@
 from typing import Any
 import ast
-from logging import Logger, getLogger
+from logging import Logger, getLogger, DEBUG
 import re
 
 from z3_utils import Logic
@@ -12,11 +12,12 @@ def get_function_name(code: str) -> str:
 	return node.name
 
 def _switch_sorts_context(code: str) -> str:
-	return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
+	#return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
 	#code = _switch_sort_context('DeclareSort', code)
 	#code = _switch_sort_context('EnumSort', code)
-	code = re.sub(r'([A-Z][a-z]+Sort)\(([^\(^\)]+)\)', r'\1(\2, ctx=l.context)', code, flags=re.MULTILINE)
-	code = re.sub(r'([A-Z][a-z]+Sort)\(\)', r'\1(ctx=l.context)', code)
+	code = re.sub(r"([A-Z][a-z]+Sort)\(([^\(\)]+)\)", r"\1(\2, ctx=l.context)", code, flags=re.MULTILINE)
+	code = re.sub(r"([A-Z][a-z]+Sort)\(\)", r"\1(ctx=l.context)", code)
+	code = re.sub(r"(Bool|Int)s\('([^\(\)']+)'\)", r"\1s('\2', ctx=l.context)", code)
 	return code
 
 def execute_code(
@@ -46,6 +47,8 @@ from z3_utils import Logic
 	except Exception as e:
 		logger.error(f'Failed to execute {function_name}.')
 		logger.debug(code)
+		if logger.isEnabledFor(DEBUG):
+			logger.exception(e, stack_info=True, stacklevel=5)
 		return False, e
 
 	logger.debug('Judging...')
@@ -56,4 +59,6 @@ from z3_utils import Logic
 		return True, result
 	except Exception as e:
 		logger.error('Failed to judge.')
+		if logger.isEnabledFor(DEBUG):
+			logger.exception(e, stack_info=True, stacklevel=5)
 		return False, e
