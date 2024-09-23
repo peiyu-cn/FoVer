@@ -37,7 +37,6 @@ You need to define a python function to store `definitions`, `claims`, `common_k
 
 NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit predicates.
-- If there are multiple instances of a declared sort, declare whether they are equal at the end of `common_knowledge`, if it is not declared in definitions or `claims` and the equality is known.
 - `common_knowledge` MUST be COMMON and objectively TRUE.
 - Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[expr, str]`. The second element is the description of the first element, MAKE SURE they match.
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
@@ -145,7 +144,6 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		]
 		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = [
-			# Multiple instances of a sort: U.S., United States - Region.
 			(us == unitedstates, "U.S. is United States."),
 		]
 		# Target.
@@ -285,7 +283,6 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		]
 		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = [
-			# Multiple instances of a sort: Mark, Tony - Person.
 			(Distinct(mark, tony), "Mark, Tony are different persons."),
 		]
 		# Targets that should be checked one by one.
@@ -373,11 +370,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(b1) < b_size__int(c))), "The blue ball is smaller than C."),
 		]
 		# Common knowledge that are true and that support the reasoning process.
-		l.common_knowledge = [
-			# Multiple instances of a sort: A, B, C - Ball; red, blue, yellow - Color.
-			# Relations among A, B, C has been clarified in claims[0].
-			# Relations among red, blue, yellow has been clarified when defining EnumSort.
-		]
+		l.common_knowledge = []
 		# Target.
 		l.assertions = [(And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow), "A is red, B is blue, C is yellow.")]
 
