@@ -86,7 +86,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 			Concepts: # What constitutes an event.
 				- discover superconductivity
 			Implicit predicates:
-				- discover: discover New thing is Event, *-to-1, (New thing) -> Event.
+				- discover: discover New thing is Event, 1-to-1, (New thing) -> Event.
 	Supplemental predicates:
 		- happen in: Event happen in Int, *-to-1, (Event) -> Int.
 	Removed & merged predicates:
@@ -127,6 +127,11 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 				ForAll([p1, e1, r1], p_is_president_of_r_when_e_happen(p1, r1, e1) == Exists([i1], And(e_happentime__int(e1) == i1, p_is_president_of_r_in_i(p1, r1, i1)))),
 				"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
 			),
+			# Necessary constraints for 1-to-1 relations.
+			(
+				ForAll([n1, n2, e1], Implies(And(discover_n_as__event(n1) == e1, discover_n_as__event(n2) == e1), n1 == n2)),
+				"'discover New thing is Event' is an injective relation between New thing and Event."
+			)
 		]
 		# Claims from text
 		l.claims = [
@@ -141,7 +146,6 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		l.common_knowledge = [
 			(us == unitedstates, "U.S. is United States."),
 		]
-
 		# Target.
 		l.assertions = [(
 			p_is_president_of_r_when_e_happen(woodrowwilson, us, discover_n_as__event(superconductivity)),
@@ -149,7 +153,8 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		)]
 
 	# All placeholders used: p1: Person, e1: Event, r1: Region, i1: Int
-	p1, = Consts('n1', Person)
+	n1, n2 = Consts('n1 n2', Newthing)
+	p1, = Consts('p1', Person)
 	e1, = Consts('e1', Event)
 	r1, = Consts('r1', Region)
 	i1, = Ints('i1')
@@ -280,7 +285,6 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		l.common_knowledge = [
 			(Distinct(mark, tony), "Mark, Tony are different persons."),
 		]
-
 		# Targets that should be checked one by one.
 		l.assertions = [
 			# Target A.
@@ -367,7 +371,6 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		]
 		# Common knowledge that are true and that support the reasoning process.
 		l.common_knowledge = []
-
 		# Target.
 		l.assertions = [(And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow), "A is red, B is blue, C is yellow.")]
 
