@@ -60,16 +60,16 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes.
 	Woodrow Wilson was president of the United States from 1913 to 1921.
 	
-	Target: Woodrow Wilson was president of the U.S. when superconductivity was discovered. # The target is NOT 'Woodrow Wilson was president of the U.S. in 1911.' because the question and answer are not about who was in 1911, but about who was when superconductivity was discovered.
+	Target: President of the U.S. when superconductivity was discovered was Woodrow Wilson. # The target is NOT 'President of the U.S. in 1911 was Woodrow Wilson.' because the question and answer are not about who was in 1911, but about who was when superconductivity was discovered.
 	Predicates: discover in, discover by, be president of from to, be president of when.
 	Parameters of predicates:
 		discover in: New thing discover in Int, *-to-1, (New thing) -> Int.
 			- New thing
 		discover by: New thing discover by Person, *-to-1, (New thing) -> Person.
 			- Person
-		be president of from to: Person be president of Region from Int to Int, *-to-*, (Person, Region, Int) -> Bool. # I will use this pattern for all range relations, [Preson] be president of [Region] from [Int a] to [Int b] == [Person] be president of [Region] in [Int x] (a <= x <= b).
+		be president of from to: Person be president of Region from Int to Int, *-to-*, (Person, Region, Int) -> Bool. # [Preson] be president of [Region] from [Int a] to [Int b] == [Person] be president of [Region] in [Int x] (a <= x <= b), I will use this pattern for all range relations.
 			- Region
-		be president of when: Person be president of Region when Event happen, *-to-*, (Person, Region, Event) -> Bool. # There may be many events happen when a person is president of a region.
+		president of when: president of Region when Event happen is Person, *-to-1, (Region, Event) -> Person.
 			- Event
 	All sorts by now: New thing, Person, Region, Event.
 	Concepts: Superconductivity, 1911, Heike Kamerlingh Onnes, Woodrow Wilson, United States, 1913, 1921, U.S.
@@ -90,8 +90,8 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	Supplemental predicates:
 		- happen in: Event happen in Int, *-to-1, (Event) -> Int.
 	Removed & merged predicates:
-		- discover in: New thing discover in Int =
-			discover New thing is Event [e], Event [e] happen in Int.
+		- discover in: [New thing] discover in [Int] ==
+			discover [New thing] is [Event e], [Event e] happen in [Int].
 	All sorts: New thing, Person, Region, Event; Int, Bool.
 	"""
 	# Initialize an instance of Logic with given arguments.
@@ -107,13 +107,13 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	# Define functions with usage comments.
 	n_discoverer__person = Function('discoverer', Newthing, Person) # (Newthing) -> Person, usage: n_discoverer__person(Newthing) = Person.
 	p_is_president_of_r_in_i = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, usage: p_is_president_of_r_in_i(Preson, Region, Int). # Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
-	p_is_president_of_r_when_e_happen = Function('is-president-of-when', Person, Region, Event, BoolSort()) # (Person, Region, Event) -> Bool, usage: p_is_president_of_r_when_e_happen(Person, Region, Event).
+	president_of_r_when_e_happen__person = Function('president-of-when', Person, Region, Event, BoolSort()) # (Region, Event) -> Person, usage: president_of_r_when_e_happen__person(Region, Event) = Person.
 	discover_n_as__event = Function('discover', Newthing, Event) # (Newthing) -> Event, usage: discover_n_as__event(Newthing) = Event.
 	e_happentime__int = Function('happentime', Event, IntSort()) # (Event) -> Int, usage: e_happentime__int(Event) = Int.
 
 	# Arrange instances.
 	superconductivity = Const('superconductivity', Newthing)
-	heikekamerlinghonnes = Const('Heike Kamerlingh Onnes', Person)
+	heikekamerlinghonnes = Const('Heike Kamerlingh Onnes', Person) # Must use `Const` rather than `Consts` because there are spaces in the name.
 	woodrowwilson = Const('Woodrow Wilson', Person)
 	unitedstates = Const('United States', Region)
 	us = Const('U.S.', Region)
@@ -122,10 +122,10 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 	def _store():
 		# Relation Definitions
 		l.definitions = [
-			# What does Person be president of Region when Event happen mean.
+			# What does president of Region when Event happen is Person mean.
 			(
-				ForAll([p1, e1, r1], p_is_president_of_r_when_e_happen(p1, r1, e1) == Exists([i1], And(e_happentime__int(e1) == i1, p_is_president_of_r_in_i(p1, r1, i1)))),
-				"A Person was president of Region when an Event happened if and only if the Event happened in the year that Person was president of that Region."
+				ForAll([p1, e1, r1], (president_of_r_when_e_happen__person(r1, e1) == p1) == Exists([i1], And(e_happentime__int(e1) == i1, p_is_president_of_r_in_i(p1, r1, i1)))),
+				"President of Region when an Event happened was Person if and only if the Event happened in the year that Person was president of that Region."
 			),
 			# Necessary constraints for 1-to-1 relations.
 			(
@@ -148,8 +148,8 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 		]
 		# Target.
 		l.assertions = [(
-			p_is_president_of_r_when_e_happen(woodrowwilson, us, discover_n_as__event(superconductivity)),
-			"Woodrow Wilson was president of the U.S. when superconductivity was discovered."
+			president_of_r_when_e_happen__person(us, discover_n_as__event(superconductivity)) == woodrowwilson,
+			"President of the U.S. when superconductivity was discovered was Woodrow Wilson."
 		)]
 
 	# All placeholders used: p1: Person, e1: Event, r1: Region, i1: Int
@@ -199,15 +199,15 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	D. Mark didn't go to the gym last night.
 	Predicates: play in, visit, drive, have appointment, go to with, go to.
 	Parameters of predicates:
-		play in: Person play in Place when Time, *-to-*, (Person, Place, Time) -> Bool.
+		play in: Person play in Place when Time, *-bool, (Person, Place, Time) -> Bool. # This is more predicative than relational, so I use *-bool instead.
 			- Person
 			- Place
 			- Time
-		visit: Person visit Person when Time, *-to-*, (Person, Person, Time) -> Bool.
-		drive: Person drive when Time, *-to-*, (Person, Time) -> Bool.
-		have appointment: Person have appointment with Person before Time, *-to-*, (Person, Person, Time) -> Bool.
-		go to with: Person go to Place with Person when Time, *-to-*, (Person, Place, Person, Time) -> Bool.
-		go to: Person go to Place when Time, *-to-*, (Person, Place, Time) -> Bool.
+		visit: Person visit Person when Time, *-bool, (Person, Person, Time) -> Bool.
+		drive: Person drive when Time, *-bool, (Person, Time) -> Bool.
+		have appointment: Person have appointment with Person before Time, *-bool, (Person, Person, Time) -> Bool.
+		go to with: Person go to Place with Person when Time, *-bool, (Person, Place, Person, Time) -> Bool.
+		go to: Person go to Place when Time, *-bool, (Person, Place, Time) -> Bool.
 	All sorts by now: Person, Place, Time.
 	Concepts: last night, Mark, gym, Tony.
 		- last night: Time
