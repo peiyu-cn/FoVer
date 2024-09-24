@@ -65,11 +65,11 @@ def get_anthropic(
 	base_url: Optional[str] = None,
 	streaming: bool = False,
 	temperature: float = 0,
-	top_p: float = 1,
+	top_p: Optional[float] = None,
 	max_tokens: int = 2048,
 	**kwargs,
 ):
-	from langchain_anthropic import ChatAnthropic
+	from langchain_anthropic.chat_models import ChatAnthropic
 	from langchain_community.cache import SQLiteCache
 
 	return ChatAnthropic(

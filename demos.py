@@ -36,10 +36,10 @@ You need to define a python function to store `definitions`, `claims`, `common_k
 `Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`.
 
 NOTICE:
-- A concept belongs to ONLY ONE sort. If you find multiple, you find implicit predicates.
+- A concept belongs to ONLY ONE sort. If you find multiple, you find implicit or supplemental predicates.
 - `common_knowledge` MUST be COMMON and objectively TRUE.
 - Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[expr, str]`. The second element is the description of the first element, MAKE SURE they match.
-- Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations.
+- Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations (p if q, p only if q, p if and only if q).
 - When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
 - Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
 I repeat, MAKE SURE the usage of defined Z3 functions matches their signatures and meanings."""
@@ -54,13 +54,13 @@ I repeat, MAKE SURE the usage of defined Z3 functions matches their signatures a
 Answer:
 Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes. Woodrow Wilson was president of the United States from 1913 to 1921. So the final answer (the name of the president) is: Woodrow Wilson."""
 ## Assistant:
-def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kwargs) -> Logic: # This function name exactly matches the target.
+def president_of_us_when_superconductivity_was_discovered_was_woodrowwilson(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
 	Claims:
 	Superconductivity was discovered in 1911 by Heike Kamerlingh Onnes.
 	Woodrow Wilson was president of the United States from 1913 to 1921.
 	
-	Target: President of the U.S. when superconductivity was discovered was Woodrow Wilson. # The target is NOT 'President of the U.S. in 1911 was Woodrow Wilson.' because the question and answer are not about who was in 1911, but about who was when superconductivity was discovered.
+	Target: President of the U.S. when superconductivity was discovered was Woodrow Wilson.
 	Predicates: discover in, discover by, be president of from to, be president of when.
 	Parameters of predicates:
 		discover in: New thing discover in Int, *-to-1, (New thing) -> Int.
@@ -113,7 +113,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 
 	# Arrange instances.
 	superconductivity = Const('superconductivity', Newthing)
-	heikekamerlinghonnes = Const('Heike Kamerlingh Onnes', Person) # Must use `Const` rather than `Consts` because there are spaces in the name.
+	heikekamerlinghonnes = Const('Heike Kamerlingh Onnes', Person)
 	woodrowwilson = Const('Woodrow Wilson', Person)
 	unitedstates = Const('United States', Region)
 	us = Const('U.S.', Region)
@@ -142,7 +142,7 @@ def woodrowwilson_was_president_of_us_when_superconductivity_was_discovered(**kw
 				"Woodrow Wilson was president from 1913 to 1921.",
 			),
 		]
-		# Common knowledge that are true and that support the reasoning process.
+		# Common sense
 		l.common_knowledge = [
 			(us == unitedstates, "U.S. is United States."),
 		]
@@ -215,7 +215,6 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		- gym: Place
 		- Tony: Person
 	Rest sorts: .
-	Implicit predicates: .
 	Supplemental predicates: .
 	All sorts: Person, Place, Time; Bool.
 	"""
@@ -281,7 +280,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 				"Mark had no appointment with his teacher Tony in advance."
 			),
 		]
-		# Common knowledge that are true and that support the reasoning process.
+		# Common sense
 		l.common_knowledge = [
 			(Distinct(mark, tony), "Mark, Tony are different persons."),
 		]
@@ -336,7 +335,6 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		- A, B, C: Ball
 		- red, blue, yellow: Color
 	Rest sorts: .
-	Implicit predicates: .
 	Supplemental predicates: .
 	All sorts: Ball, Color; Int.
 	"""
@@ -353,7 +351,9 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	b_size__int = Function('ball-size', Ball, IntSort()) # (Ball) -> Int, usage: b_size__int(Ball) = Int.
 
 	# Arrange instances.
-	a, b, c = Consts('A B C', Ball)
+	a = Const('A', Ball)
+	b = Const('B', Ball)
+	c = Const('C', Ball)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
@@ -369,7 +369,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(a) != b_size__int(b1))), "A and the blue ball are not the same size."),
 			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(b1) < b_size__int(c))), "The blue ball is smaller than C."),
 		]
-		# Common knowledge that are true and that support the reasoning process.
+		# Common sense
 		l.common_knowledge = []
 		# Target.
 		l.assertions = [(And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow), "A is red, B is blue, C is yellow.")]
