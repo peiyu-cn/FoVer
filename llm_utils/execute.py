@@ -1,9 +1,16 @@
-from typing import Any
+from typing import Any, Literal, Optional
 import ast
+import asyncio
+from concurrent.futures import ProcessPoolExecutor
 from logging import Logger, getLogger, DEBUG
+from multiprocessing import Process, Queue
 import re
 
 from z3_utils import Logic
+
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+	from z3.z3 import CheckSatResult
 
 def get_function_name(code: str) -> str:
 	tree = ast.parse(code)
@@ -12,6 +19,7 @@ def get_function_name(code: str) -> str:
 	return node.name
 
 def _switch_sorts_context(code: str) -> str:
+	return code
 	#return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
 	#code = _switch_sort_context('DeclareSort', code)
 	#code = _switch_sort_context('EnumSort', code)
@@ -25,9 +33,54 @@ def execute_code(
 	context: dict[str, Any] = {},
 	logger: Logger = getLogger(__name__),
 	use_common_knowledge: bool = True,
-	translate: bool = False
+	translate: bool = False,
+	timeout: Optional[float] = 5,
+) -> "tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]":
+	queue = Queue()
+	process = Process(target=_execute_code, args=(queue, code, context, logger, use_common_knowledge, translate))
+	process.start()
+	process.join(timeout)
+	if process.is_alive():
+		logger.error('Execution timed out after %.2f seconds.', timeout)
+		process.terminate()
+		return False, TimeoutError(f'Execution timed out after {timeout} seconds.')
+	else:
+		return queue.get()
+
+def execute_codes(
+	codes: list[str],
+	contexts: Optional[list[dict[str, Any]]] = None,
+	logger: Logger = getLogger(__name__),
+	use_common_knowledge: bool = True,
+	translate: bool = False,
+	timeout: Optional[float] = 5,
+) -> "list[asyncio.Future[tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]]]":
+	loop = asyncio.get_running_loop()
+	with ProcessPoolExecutor() as pool:
+		tasks = [
+			loop.run_in_executor(
+				pool,
+				execute_code,
+				code,
+				context,
+				logger,
+				use_common_knowledge,
+				translate,
+				timeout,
+			)
+			for code, context in zip(codes, contexts or [{}] * len(codes))
+		]
+		return tasks
+
+def _execute_code(
+	queue: Queue,
+	code: str,
+	context: dict[str, Any],
+	logger: Logger,
+	use_common_knowledge: bool,
+	translate: bool,
 ):
-	exec('''from z3 import *
+	exec('''from z3.z3 import *
 from z3_utils import Logic
 ''', context)
 	try:
@@ -36,7 +89,8 @@ from z3_utils import Logic
 		logger.debug('Code imported.')
 	except Exception as e:
 		logger.error('Failed to import code.')
-		return False, e
+		queue.put((False, e))
+		return
 
 	function_name = get_function_name(code)
 
@@ -53,16 +107,19 @@ from z3_utils import Logic
 		logger.debug(code)
 		if logger.isEnabledFor(DEBUG):
 			logger.exception(e, stack_info=True, stacklevel=5)
-		return False, e
+		queue.put((False, e))
+		return
 
 	logger.debug('Judging...')
 	# TODO: handle common exceptions
 	try:
 		result = logic.judge()
 		logger.debug('Judged.')
-		return True, result
+		queue.put((True, result))
+		return
 	except Exception as e:
 		logger.error('Failed to judge.')
 		if logger.isEnabledFor(DEBUG):
 			logger.exception(e, stack_info=True, stacklevel=5)
-		return False, e
+		queue.put((False, e))
+		return

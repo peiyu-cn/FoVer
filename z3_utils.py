@@ -45,8 +45,8 @@ class LogicBase:
 		logger: Logger = getLogger(__name__),
 		**kwargs
 	):
-		self.context = kwargs.get("context", None) or Context()
-		kwargs["ctx"] = self.context
+		self.context = kwargs.get("context", None)# or Context()
+		# kwargs["ctx"] = self.context
 		self.s = Solver(**kwargs)
 		self.use_common_knowledge = use_common_knowledge
 		if not translate:

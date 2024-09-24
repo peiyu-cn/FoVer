@@ -1,9 +1,10 @@
 from typing import Callable, Literal
 
+import asyncio
 from logging import Logger, getLogger
 from z3 import CheckSatResult
 
-from .execute import execute_code
+from .execute import execute_codes
 
 def process_response(content: str):
 	content = content.strip()
@@ -22,22 +23,34 @@ def check_responses(
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
 	logger: Logger = getLogger(__name__),
 ):
+	return asyncio.run(check_responses_async(responses, check_cb, logger))
+
+async def check_responses_async(
+	responses: list[str],
+	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	logger: Logger = getLogger(__name__),
+):
 	correct = 0
 	wrong = 0
 	llm_failed = 0
 	z3_failed = 0
 	total = 0
 
-	for i, response in enumerate(responses):
-		execute_result = execute_code(response)
-		if execute_result[0] == False:
+	tasks = execute_codes(
+		responses,
+		use_common_knowledge=False,
+	)
+
+	for i, result in enumerate(tasks):
+		logger.info('Checking response #%d...', i)
+		result = await tasks[i]
+		if result[0] == False:
 			llm_failed += 1
 			total += 1
-			logger.error('Failed to execute #%d: %s', i, execute_result[1])
+			logger.error('Failed to execute #%d: %s', i, result[1])
 			continue
 		else:
-			results = execute_result[1]
-			c, w, f, t = check_cb(i, results)
+			c, w, f, t = check_cb(i, result[1])
 			correct += c
 			wrong += w
 			z3_failed += f
