@@ -1,4 +1,5 @@
 from typing import Any, Callable, Literal, Tuple
+from typing_extensions import deprecated
 
 from logging import Logger, getLogger
 from z3.z3 import * # type: ignore
@@ -39,7 +40,8 @@ Expr = (
 
 class LogicBase:
 	def __init__(self,
-		use_common_knowledge = False,
+		use_common_knowledge = True,
+		translate = True,
 		logger: Logger = getLogger(__name__),
 		**kwargs
 	):
@@ -47,6 +49,8 @@ class LogicBase:
 		kwargs["ctx"] = self.context
 		self.s = Solver(**kwargs)
 		self.use_common_knowledge = use_common_knowledge
+		if not translate:
+			self._switch_context = lambda exprs: exprs
 		self._logger = logger
 		self._added = False
 
@@ -80,9 +84,8 @@ class LogicBase:
 
 		return self._switch_context(exprs)
 
-	def _switch_context(self, exprs: list[Tuple[Expr, str]]):
-		# return exprs
-		return [
+	def _switch_context(self, exprs: list[Tuple[Expr, str]]) -> list[Tuple[Expr, str]]:
+		return [ # type: ignore
 			(expr.translate(self.context) if expr.ctx != self.context else expr, desc)
 			for expr, desc in exprs
 		]
@@ -183,8 +186,8 @@ class LogicBase:
 		return solve(self.to_conjunction())
 
 class Logic(LogicBase):
-	def __init__(self, use_common_knowledge=True, **kwargs):
-		super().__init__(use_common_knowledge, **kwargs)
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
 
 	@property
 	def assertions(self) -> list[Tuple[BoolRef | QuantifierRef, str]]:
@@ -203,9 +206,11 @@ class Logic(LogicBase):
 			elif assertion in self._get_expr(self.claims):
 				self._logger.warning('Assertion #%d (%s) is inluded in claims.', i, assertion)
 
+@deprecated('Use Logic instead.')
 class QALogic(LogicBase):
-	def __init__(self, use_common_knowledge=False, **kwargs):
-		super().__init__(use_common_knowledge, **kwargs)
+	def __init__(self, **kwargs):
+		raise NotImplementedError
+		super().__init__(**kwargs)
 
 	@property
 	def answer(self):

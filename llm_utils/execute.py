@@ -25,6 +25,7 @@ def execute_code(
 	context: dict[str, Any] = {},
 	logger: Logger = getLogger(__name__),
 	use_common_knowledge: bool = True,
+	translate: bool = False
 ):
 	exec('''from z3 import *
 from z3_utils import Logic
@@ -42,7 +43,10 @@ from z3_utils import Logic
 	logger.debug(f'Executing {function_name}...')
 	logic: Logic
 	try:
-		logic = context[function_name](use_common_knowledge=use_common_knowledge)
+		logic = context[function_name](
+			use_common_knowledge=use_common_knowledge,
+			translate=translate,
+		)
 		logger.debug(f'{function_name} executed.')
 	except Exception as e:
 		logger.error(f'Failed to execute {function_name}.')
