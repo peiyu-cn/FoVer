@@ -6,7 +6,7 @@ from z3.z3 import * # type: ignore
 from typing import TYPE_CHECKING
 
 def verify(s: Solver, expr):
-	assert s.check() == sat # sanity check
+	assert s.check() == sat, 'Paradox premises.' # sanity check
 
 	r1 = s.check(expr)
 	r2 = s.check(Not(expr))
@@ -81,7 +81,7 @@ class LogicBase:
 		return self._switch_context(exprs)
 
 	def _switch_context(self, exprs: list[Tuple[Expr, str]]):
-		return exprs
+		# return exprs
 		return [
 			(expr.translate(self.context) if expr.ctx != self.context else expr, desc)
 			for expr, desc in exprs

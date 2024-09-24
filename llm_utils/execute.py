@@ -8,7 +8,7 @@ from z3_utils import Logic
 def get_function_name(code: str) -> str:
 	tree = ast.parse(code)
 	node = tree.body[0]
-	assert isinstance(node, ast.FunctionDef)
+	assert isinstance(node, ast.FunctionDef), f'Expected FunctionDef, but got {type(node)}'
 	return node.name
 
 def _switch_sorts_context(code: str) -> str:
