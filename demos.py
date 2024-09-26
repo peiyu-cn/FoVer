@@ -1,5 +1,5 @@
 # %% imports
-from z3 import * # type: ignore
+from z3.z3 import * # type: ignore
 
 from z3_utils import Logic
 

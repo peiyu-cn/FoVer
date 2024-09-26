@@ -106,9 +106,12 @@ def generate_batch(
 	size: int,
 	job_prefix: str,
 	model_name = 'gpt-4o-2024-08-06',
-	endpoint = '/v1/chat/completions',
 	demos_path = 'demos.py',
 	custom_ids: Optional[Sequence[str]] = None,
+	endpoint = '/v1/chat/completions',
+	max_tokens = 2048,
+	temperature = 0,
+	top_p = 1,
 ):
 	demos = get_demos(demos_path)
 	system, _demos = demos
@@ -121,9 +124,9 @@ def generate_batch(
 		request_body = get_openai_request_body(
 			openai_messages,
 			model_name,
-			max_tokens=2048,
-			temperature=0,
-			top_p=1,
+			max_tokens=max_tokens,
+			temperature=temperature,
+			top_p=top_p,
 		)
 		bodies.append(request_body)
 

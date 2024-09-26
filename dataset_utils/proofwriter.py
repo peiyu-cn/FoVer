@@ -6,7 +6,7 @@ import json
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
 	from typing import TypedDict
-	from z3 import CheckSatResult
+	from z3.z3 import CheckSatResult
 	from z3_utils import Logic
 
 	class Question(TypedDict):
@@ -18,6 +18,15 @@ if TYPE_CHECKING:
 		id: str
 		theory: str
 		questions: list[Question]
+
+def get_data(
+	data_path='data/proofwriter/OWA/depth-5/meta-dev.jsonl',
+) -> "list[Entry]":
+	with open(data_path, 'r', encoding='utf-8') as file:
+		return [
+			parse_record(line)
+			for line in file
+		]
 
 def parse_record(record: str) -> "Entry":
 	j = json.loads(record)
@@ -59,11 +68,16 @@ def generate_prompts(
 
 def _result_equal(
 	judge_result: "bool | CheckSatResult",
-	answer: "bool | Literal['Unknown']"
+	answer: "bool | Literal['Unknown']",
+	allow_unknown: bool,
+	logger: Logger,
 ) -> "bool | CheckSatResult":
 	from z3 import sat
 
 	if isinstance(judge_result, bool):
+		if allow_unknown and answer == 'Unknown':
+			logger.warning('%s - %s', judge_result, answer)
+			return True
 		return judge_result == answer
 	elif judge_result == sat:
 		return answer == 'Unknown'
@@ -76,6 +90,7 @@ def _binarize(n: int):
 def check_result(
 	results: "list[bool | CheckSatResult]",
 	data: "Entry",
+	allow_unknown: bool = False,
 	logger: Logger = getLogger(__name__),
 ):
 	correct = 0
@@ -85,7 +100,7 @@ def check_result(
 	assert len(results) == total
 
 	for i in range(total):
-		is_equal = _result_equal(results[i], data['questions'][i]['answer'])
+		is_equal = _result_equal(results[i], data['questions'][i]['answer'], allow_unknown, logger)
 		if is_equal == True:
 			correct += 1
 		elif is_equal == False:
@@ -99,4 +114,4 @@ def check_result(
 		logger.info('Wrong answers for %s', data['id'])
 
 	#return correct, wrong, failed, total
-	return _binarize(correct), _binarize(wrong), _binarize(failed), _binarize(total)
+	return _binarize(1 - wrong - failed), _binarize(wrong), _binarize(failed), _binarize(total)

@@ -41,7 +41,7 @@ Expr = (
 class LogicBase:
 	def __init__(self,
 		use_common_knowledge = True,
-		translate = True,
+		translate = False,
 		logger: Logger = getLogger(__name__),
 		**kwargs
 	):

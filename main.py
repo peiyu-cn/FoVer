@@ -1,30 +1,36 @@
+from typing import Callable, Literal, Optional
+
 from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+	from dataset_utils.proofwriter import Entry
+	from dataset_utils.reveal import RevealRecord
 
 def openai_request():
-	# from dataset_utils.proofwriter import generate_prompts
 	from llm_utils.openai_request import generate_batch, submit_batch
-	from dataset_utils.reveal import generate_prompts
+	from dataset_utils.proofwriter import generate_prompts
+	# from dataset_utils.reveal import generate_prompts
 
-	prompts, ids = generate_prompts(
-		filter=lambda record: record['dataset'] == 'strategy_qa',
-		return_ids=True,
-	)
-	if TYPE_CHECKING:
-		assert isinstance(prompts, list) # idiot pylance
-		assert isinstance(ids, list) # even more idiot
+	#prompts, ids = generate_prompts(
+	#	filter=lambda record: record['dataset'] == 'strategy_qa',
+	#	return_ids=True,
+	#)
+	#if TYPE_CHECKING:
+	#	assert isinstance(prompts, list) # idiot pylance
+	#	assert isinstance(ids, list) # even more idiot
+	prompts = generate_prompts('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
 	outfile = generate_batch(
 		prompts,
-		0, 20,
-		'z3py-3-shot-v6-reveal-strategyqa-gpt4o0806',
+		0, 100,
+		'z3py-3-shot-v20-proofwriter-owa5-gpt4o0806',
 		'gpt-4o-2024-08-06',
-		custom_ids=ids,
+		#custom_ids=ids,
+		max_tokens=4096,
 	)
 	input('Press Enter to submit batch.')
 	submit_batch(outfile)
 
 def langchain_request():
-	from llm_utils.langchain_request import request_and_save, get_anthropic
-	from anthropic._exceptions import APIError
+	from llm_utils.langchain_request import request_and_save, get_anthropic, get_anthropic_api_error
 	from private.apikey import anthropic_base_url, anthropic_key
 	from dataset_utils.reveal import generate_prompts
 
@@ -49,30 +55,34 @@ def langchain_request():
 		model,
 		'data/langchain_response/z3py-3-shot-v6-reveal-strategyqa-claude35sonnet-0000-0020.json',
 		prefill='def',
-		max_concurrency=3,
-		retry_if_exception_type=(APIError,),
+		max_concurrency=2,
+		retry_if_exception_type=(get_anthropic_api_error(),),
 	)
 
 def openai_check():
 	from llm_utils.openai_response import check_batch_response
-	# from dataset_utils.proofwriter import check_result, parse_record
-	from dataset_utils.reveal import check_result, get_reveal_data
+	from dataset_utils.proofwriter import check_result, get_data
+	# from dataset_utils.reveal import check_result, get_data
 
-	source = get_reveal_data(filter = lambda record: record['dataset'] == 'strategy_qa')
-	source = source[0:20]
+	#source = get_data(filter = lambda record: record['dataset'] == 'strategy_qa')
+	#source = source[0:20]
+	source = get_data('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
+	source = source[0:100]
 
 	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
-		'data/batch_response/z3py-3-shot-v6-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
-		lambda i, results: check_result(results, source[i]),
+		#'data/batch_response/z3py-3-shot-v20-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
+		# lambda i, results: check_result(results, source[i]),
+		'data/batch_response/z3py-3-shot-v20-proofwriter-owa5-gpt4o0806-0000-0100-2.jsonl',
+		lambda i, results: check_result(results, source[i], allow_unknown=False),
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
 def langchain_check():
 	from llm_utils.langchain_response import check_langchain_response
 	# from dataset_utils.proofwriter import check_result, parse_record
-	from dataset_utils.reveal import check_result, get_reveal_data
+	from dataset_utils.reveal import check_result, get_data
 
-	source = get_reveal_data(filter = lambda record: record['dataset'] == 'strategy_qa')
+	source = get_data(filter = lambda record: record['dataset'] == 'strategy_qa')
 	source = source[0:20]
 
 	correct, wrong, llm_failed, z3_failed, total = check_langchain_response(
@@ -87,22 +97,28 @@ if __name__ == '__main__':
 	import logging
 
 	parser = ArgumentParser()
-	parser.add_argument('mode',
+	parser.add_argument('method',
 		choices=[
-			'openai_request',
-			'langchain_request',
-			'openai_check',
-			'langchain_check'
+			method.__name__
+			for method in [openai_request, langchain_request, openai_check, langchain_check]
 		],
-		help='mode to run')
+		help='method to run')
 	parser.add_argument('-l', '--log-level',
 		choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
 		type=str.upper,
-		nargs='?',
 		help='set log level', default='INFO')
+	parser.add_argument('args', nargs='*', help='method arguments')
 	args = parser.parse_args()
 
 	if args.log_level:
 		logging.basicConfig(level=args.log_level.upper())
-	if args.mode:
-		globals()[args.mode]()
+	if args.method:
+		positional_args: list[str] = []
+		keyword_args: dict[str, str] = {}
+		for arg in args.args:
+			if '=' in arg:
+				key, value = arg.split('=', 1)
+				keyword_args[key] = value
+			else:
+				positional_args.append(arg)
+		globals()[args.method](*positional_args, **keyword_args)

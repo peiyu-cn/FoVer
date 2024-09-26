@@ -14,7 +14,7 @@ class RevealRecord(TypedDict):
 	full_answer: str
 	answer_is_logically_correct: bool
 
-def get_reveal_data(
+def get_data(
 	data_path = 'data/reveal/eval/reveal_eval.csv',
 	filter: Optional[Callable[[RevealRecord], bool]] = None,
 ) -> Sequence[RevealRecord]:
@@ -42,7 +42,7 @@ def generate_prompts(
 	prompts: list[str] = []
 	ids: list[str] = []
 
-	for record in get_reveal_data(data_path, filter):
+	for record in get_data(data_path, filter):
 		prompts.append(generate_prompt(record))
 		if return_ids:
 			ids.append(record['answer_id'])

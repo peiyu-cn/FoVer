@@ -83,3 +83,7 @@ def get_anthropic(
 		cache=SQLiteCache(f'cache/{model_name}-{task_id}.db'),
 		**kwargs,
 	)
+
+def get_anthropic_api_error():
+	from anthropic._exceptions import APIError
+	return APIError
