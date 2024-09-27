@@ -33,12 +33,12 @@ from z3_utils import Logic
 10. Sum up all sorts.
 
 You need to define a python function to store `definitions`, `claims`, `common_knowledge`, and the main target `assertions`, with their descriptions. `definitions` are relations among predicates, about what a predicate means. `common_knowledge` are unmentioned common sense without which the conclusion cannot be drawn, but are not restatement of the conclusion; the author misses them, but it can be inferred that the author assumes everyone know them, and they are indeed true.
-`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[expr, str]]`.
+`Logic` is a pre-defined wrapper class. `definitions`, `claims`, `common_knowledge`, and `assertions` are `list[tuple[str, Expr]]`.
 
 NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit or supplemental predicates.
 - `common_knowledge` MUST be COMMON and objectively TRUE.
-- Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[expr, str]`. The second element is the description of the first element, MAKE SURE they match.
+- Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[str, Expr]`. The first element is the description of the second element, MAKE SURE they match.
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations (p if q, p only if q, p if and only if q).
 - When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
 - Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
@@ -124,32 +124,35 @@ def president_of_us_when_superconductivity_was_discovered_was_woodrowwilson(**kw
 		l.definitions = [
 			# What does president of Region when Event happen is Person mean.
 			(
-				ForAll([p1, e1, r1], (president_of_r_when_e_happen__person(r1, e1) == p1) == Exists([i1], And(e_happentime__int(e1) == i1, p_is_president_of_r_in_i(p1, r1, i1)))),
-				"President of Region when an Event happened was Person if and only if the Event happened in the year that Person was president of that Region."
+				"President of Region when an Event happened was Person if and only if the Event happened in the year that Person was president of that Region.",
+				ForAll([p1, e1, r1], (president_of_r_when_e_happen__person(r1, e1) == p1) == Exists([i1], And(e_happentime__int(e1) == i1, p_is_president_of_r_in_i(p1, r1, i1))))
 			),
 			# Necessary constraints for 1-to-1 relations.
 			(
-				ForAll([n1, n2, e1], Implies(And(discover_n_as__event(n1) == e1, discover_n_as__event(n2) == e1), n1 == n2)),
-				"'discover New thing is Event' is an injective relation between New thing and Event."
+				"'discover New thing is Event' is an injective relation between New thing and Event.",
+				ForAll([n1, n2, e1], Implies(And(discover_n_as__event(n1) == e1, discover_n_as__event(n2) == e1), n1 == n2))
 			)
 		]
 		# Claims from text
 		l.claims = [
-			(e_happentime__int(discover_n_as__event(superconductivity)) == 1911, "Superconductivity was discovered in 1911."),
-			(n_discoverer__person(superconductivity) == heikekamerlinghonnes, "Superconductivity was discovered by Heike Kamerlingh Onnes."),
+			("Superconductivity was discovered in 1911.", e_happentime__int(discover_n_as__event(superconductivity)) == 1911),
 			(
-				ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (p_is_president_of_r_in_i(woodrowwilson, unitedstates, i1)))),
+				"Superconductivity was discovered by Heike Kamerlingh Onnes.",
+				n_discoverer__person(superconductivity) == heikekamerlinghonnes
+			),
+			(
 				"Woodrow Wilson was president from 1913 to 1921.",
+				ForAll([i1], Implies(And(i1 >= 1913, i1 <= 1921), (p_is_president_of_r_in_i(woodrowwilson, unitedstates, i1))))
 			),
 		]
 		# Common sense
 		l.common_knowledge = [
-			(us == unitedstates, "U.S. is United States."),
+			("U.S. is United States.", us == unitedstates),
 		]
 		# Target.
 		l.assertions = [(
-			president_of_r_when_e_happen__person(us, discover_n_as__event(superconductivity)) == woodrowwilson,
-			"President of the U.S. when superconductivity was discovered was Woodrow Wilson."
+			"President of the U.S. when superconductivity was discovered was Woodrow Wilson.",
+			president_of_r_when_e_happen__person(us, discover_n_as__event(superconductivity)) == woodrowwilson
 		)]
 
 	# All placeholders used: p1: Person, e1: Event, r1: Region, i1: Int
@@ -248,55 +251,51 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 			# What constitutes Person go to Place when Time.
 			# What does Person play in Place when Time mean.
 			(
-				ForAll([p1, pl1, t1], Implies(p_play_in_pl_when_t(p1, pl1, t1), p_go_to_pl_when_t(p1, pl1, t1))),
-				"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time."
+				"If a Person plays in a Place at a Time, then the Person goes to the Place at that Time.",
+				ForAll([p1, pl1, t1], Implies(p_play_in_pl_when_t(p1, pl1, t1), p_go_to_pl_when_t(p1, pl1, t1)))
 			),
 			# What does Person [a] go to Place with Person [b] when Time mean.
 			(
-				ForAll([p1, p2, pl1, t1], Implies(p_a_go_to_pl_with_p_b_when_t(p1, pl1, p2, t1), And(p_go_to_pl_when_t(p1, pl1, t1), p_go_to_pl_when_t(p2, pl1, t1)))),
-				"If a Person A goes to a Place with Person B at a Time, then both Persons go to the Place at that Time."
+				"If a Person A goes to a Place with Person B at a Time, then both Persons go to the Place at that Time.",
+				ForAll([p1, p2, pl1, t1], Implies(p_a_go_to_pl_with_p_b_when_t(p1, pl1, p2, t1), And(p_go_to_pl_when_t(p1, pl1, t1), p_go_to_pl_when_t(p2, pl1, t1))))
 			),
 		]
 		# Claims from text
 		l.claims = [
 			(
+				"Last night, Mark either went to play in the gym or visited his teacher Tony.",
 				# either-or in this text indicates that two sides cannot be true at the same time.
 				Xor(
 					p_play_in_pl_when_t(mark, gym, lastnight),
 					p_a_visit_p_b_when_t(mark, tony, lastnight)
-				),
-				"Last night, Mark either went to play in the gym or visited his teacher Tony."
+				)
 			),
 			(
-				Implies(p_drive_when_t(mark, lastnight), Not(p_play_in_pl_when_t(mark, gym, lastnight))),
-				"If Mark drove last night, he didn't go to play in the gym."
+				"If Mark drove last night, he didn't go to play in the gym.",
+				Implies(p_drive_when_t(mark, lastnight), Not(p_play_in_pl_when_t(mark, gym, lastnight)))
 			),
 			(
-				Implies(p_a_visit_p_b_when_t(mark, tony, lastnight), p_a_have_appointment_with_p_b_before_t(mark, tony, lastnight)),
-				"Mark would go visit his teacher Tony only if he and his teacher had an appointment."
+				"Mark would go visit his teacher Tony only if he and his teacher had an appointment.",
+				Implies(p_a_visit_p_b_when_t(mark, tony, lastnight), p_a_have_appointment_with_p_b_before_t(mark, tony, lastnight))
 			),
 			(
-				Not(p_a_have_appointment_with_p_b_before_t(mark, tony, lastnight)),
-				"Mark had no appointment with his teacher Tony in advance."
+				"Mark had no appointment with his teacher Tony in advance.",
+				Not(p_a_have_appointment_with_p_b_before_t(mark, tony, lastnight))
 			),
 		]
 		# Common sense
 		l.common_knowledge = [
-			(Distinct(mark, tony), "Mark, Tony are different persons."),
+			("Mark, Tony are different persons.", Distinct(mark, tony)),
 		]
 		# Targets that should be checked one by one.
 		l.assertions = [
-			# Target A.
 			(
-				p_a_go_to_pl_with_p_b_when_t(mark, gym, tony, lastnight),
-				"Mark went to the gym with his teacher Tony last night."
+				"Mark went to the gym with his teacher Tony last night.",
+				p_a_go_to_pl_with_p_b_when_t(mark, gym, tony, lastnight)
 			),
-			# Target B.
-			(p_a_visit_p_b_when_t(mark, tony, lastnight), "Mark visited his teacher Tony last night."),
-			# Target C.
-			(Not(p_drive_when_t(mark, lastnight)), "Mark didn't drive last night."),
-			# Target D.
-			(Not(p_go_to_pl_when_t(mark, gym, lastnight)), "Mark didn't go to the gym last night."),
+			("Mark visited his teacher Tony last night.", p_a_visit_p_b_when_t(mark, tony, lastnight)),
+			("Mark didn't drive last night.", Not(p_drive_when_t(mark, lastnight))),
+			("Mark didn't go to the gym last night.", Not(p_go_to_pl_when_t(mark, gym, lastnight))),
 		]
 
 	# All placeholders used: p1, p2: Person, pl1: Place, t1: Time
@@ -361,169 +360,28 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		l.definitions = [
 			# Necessary constraints for 1-to-1 relations.
 			(
-				ForAll([b1, b2], (b__color(b1) == b__color(b2)) == (b1 == b2)),
-				"'Ball is Color' is an injective relation between Ball and Color."
+				"'Ball is Color' is an injective relation between Ball and Color.",
+				ForAll([b1, b2], (b__color(b1) == b__color(b2)) == (b1 == b2)) # We must add brackets to sides of `==` to avoid ambiguity.
 			),
 		]
 		# Claims from text
 		l.claims = [
-			(Exists([b1], b__color(b1) == red), "One ball is red."),
-			(Exists([b1], b__color(b1) == blue), "One ball is blue."),
-			(Exists([b1], b__color(b1) == yellow), "One ball is yellow."),
-			(ForAll([b1], Implies(b__color(b1) == yellow, b_size__int(c) > b_size__int(b1))), "C is bigger than the yellow ball."),
-			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(a) != b_size__int(b1))), "A and the blue ball are not the same size."),
-			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(b1) < b_size__int(c))), "The blue ball is smaller than C."),
+			("One ball is red.", Exists([b1], b__color(b1) == red)),
+			("One ball is blue.", Exists([b1], b__color(b1) == blue)),
+			("One ball is yellow.", Exists([b1], b__color(b1) == yellow)),
+			("C is bigger than the yellow ball.", ForAll([b1], Implies(b__color(b1) == yellow, b_size__int(c) > b_size__int(b1)))),
+			("A and the blue ball are not the same size.", ForAll([b1], Implies(b__color(b1) == blue, b_size__int(a) != b_size__int(b1)))),
+			("The blue ball is smaller than C.", ForAll([b1], Implies(b__color(b1) == blue, b_size__int(b1) < b_size__int(c)))),
 		]
 		# Common sense
 		l.common_knowledge = [
-			(Distinct(red, blue, yellow), "Red, blue, yellow are different colors."),
+			("Red, blue, yellow are different colors.", Distinct(red, blue, yellow)),
 		]
 		# Target.
-		l.assertions = [(And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow), "A is red, B is blue, C is yellow.")]
+		l.assertions = [("A is red, B is blue, C is yellow.", And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow))]
 
 	# All placeholders used: b1: Ball
 	b1, b2 = Consts('b1 b2', Ball)
-
-	_store()
-
-	return l
-
-# %% [markdown] ProofWriter demos
-# ## ProofWriter demos
-# theory-statements pairs
-# 
-# Used data:
-# - OWA/birds-electricity
-# - OWA/NatLang
-# 
-# Template: "Theory: <theory> Question: Which of the following statements can be inferred from the theory?: <statements>"
-
-#- %% demo 4
-# from `meta-train.jsonl` line 1
-##- User:
-"""Theory:
-From a certain angle Dave is blue but he is young so maybe that will go away. My friend Eric is very young. People say he is nice for having a round shape. Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure. A kind, round person will surely be red as well. I have found that young, blue, and big individuals are also red. If smeone has a blue and green color, then they are young and probably kind. People that are green tend to be young. Somebody fitting a young, blue and round description will also fit a green description. Being cold and blue made them rough to deal with. A person that is known to be big and rough is also green, they will feel blue about it.
-
-Question: Which of the following statements can be inferred from the theory?
-Q1. Harry is blue.
-Q6. Harry is not kind.
-Q11. Dave is not rough.
-Q12. Bob is young."""
-##- Assistant:
-def multiple_targets_dave_blue(**kwargs) -> Logic: # The function name does not matter in cases with multiple targets.
-	"""
-	From a certain angle Dave is blue but he is young so maybe that will go away.
-	My friend Eric is very young.
-	People say he is nice for having a round shape.
-	Harry was in a chemistry lab accident and turned blue and green which is even more obvious due to his round figure.
-	A kind, round person will surely be red as well.
-	I have found that young, blue, and big individuals are also red.
-	If smeone has a blue and green color, then they are young and probably kind.
-	People that are green tend to be young.
-	Somebody fitting a young, blue and round description will also fit a green description.
-	Being cold and blue made them rough to deal with.
-	A person that is known to be big and rough is also green, they will feel blue about it.
-
-	Targets:
-	Q1. Harry is blue.
-	Q6. Harry is not kind.
-	Q11. Dave is not rough.
-	Q12. Bob is young.
-	Predicates: has feature (is). # All predicates can be unified under has feature (is).
-	Parameters of predicates:
-		has feature: Person is Feature, *-to-*, (Person, Feature) -> Bool.
-			- Person
-			- Feature
-	All sorts by now: Person, Feature.
-	Concepts: Dave, blue, young, Eric, nice, round, Harry, green, kind, red, big, cold, rough, Bob.
-		- Dave: Person
-		- blue, young: Feature
-		- Eric: Person
-		- nice, round: Feature
-		- Harry: Person
-		- green, kind, red, big, cold, rough: Feature
-		- Bob: Person
-	Rest sorts: .
-	Implicit predicates: .
-	Supplemental predicates: .
-	All sorts: Person, Feature.
-	"""
-	# Initialize an instance of Logic with given arguments.
-	l = Logic(**kwargs)
-
-	# Define types.
-	Person = DeclareSort('Person')
-	Feature, (blue, young, nice, round, green, kind, red, big, cold, rough) = EnumSort('Feature',
-		['blue', 'young', 'nice', 'round', 'green', 'kind', 'red', 'big', 'cold', 'rough']
-	) # Features are different from one another, and these are all features that would be used.
-	# Define functions.
-	has_feature = Function('is', Person, Feature, BoolSort()) # (Person, Feature) -> Bool, Person is Feature.
-
-	# Arrange instances.
-	dave = Const('Dave', Person)
-	eric = Const('Eric', Person)
-	harry = Const('Harry', Person)
-	bob = Const('Bob', Person)
-
-	# I'm not sure what quantifiers will be used, so I shall define them later.
-	def _store():
-		# Relation Definitions
-		l.definitions = []
-		# Claims from text
-		l.claims = [
-			(has_feature(dave, blue), "From a certain angle Dave is blue."),
-			(has_feature(dave, young), "Dave is young."),
-			(has_feature(eric, young), "Eric is very young."),
-			(has_feature(eric, nice), "People say Eric is nice."),
-			(has_feature(eric, round), "Eric has a round shape."),
-			(has_feature(harry, blue), "Harry turned blue."),
-			(has_feature(harry, green), "Harry turned green."),
-			(has_feature(harry, round), "Harry has a round figure."),
-			(
-				# p1: Person
-				ForAll([p1], Implies(And(has_feature(p1, kind), has_feature(p1, round)), has_feature(p1, red))),
-				"A kind, round person will surely be red."
-			),
-			(
-				ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, big)), has_feature(p1, red))),
-				"Young, blue, and big individuals are also red."
-			),
-			(
-				ForAll([p1], Implies(And(has_feature(p1, blue), has_feature(p1, green)), And(has_feature(p1, young), has_feature(p1, kind)))),
-				"If someone has a blue and green color, then they are young and probably kind."
-			),
-			(ForAll([p1], Implies(has_feature(p1, green), has_feature(p1, young))), "People that are green tend to be young."),
-			(
-				ForAll([p1], Implies(And(has_feature(p1, young), has_feature(p1, blue), has_feature(p1, round)), has_feature(p1, green))),
-				"Somebody fitting a young, blue and round description will also fit a green description."
-			),
-			(
-				ForAll([p1], Implies(And(has_feature(p1, cold), has_feature(p1, blue)), has_feature(p1, rough))),
-				"Being cold and blue made them rough to deal with."
-			),
-			(
-				ForAll([p1], Implies(And(has_feature(p1, big), has_feature(p1, rough), has_feature(p1, green)), has_feature(p1, blue))),
-				"A person that is known to be big and rough is also green, they will feel blue about it."
-			),
-		]
-		# Common knowledge that I know to be true and that support the reasoning process.
-		l.common_knowledge = [
-			(
-				Distinct(dave, eric, harry, bob),
-				"Eric, Dave, Harry, Bob are different persons."
-			),
-		]
-
-		# Targets that should be checked one by one.
-		l.assertions = [
-			(has_feature(harry, blue), "Harry is blue."),
-			(Not(has_feature(harry, kind)), "Harry is not kind."),
-			(Not(has_feature(dave, rough)), "Dave is not rough."),
-			(has_feature(bob, young), "Bob is young."),
-		]
-
-	# All placeholders used: p1: Person
-	p1, = Consts('p1', Person)
 
 	_store()
 
