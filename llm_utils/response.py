@@ -6,6 +6,8 @@ from z3 import CheckSatResult
 
 from .execute import execute_codes
 
+_logger = getLogger(__name__)
+
 def process_response(content: str):
 	content = content.strip()
 	if content.startswith('```'):
@@ -21,14 +23,16 @@ def process_response(content: str):
 def check_responses(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
-	logger: Logger = getLogger(__name__),
+	use_common_knowledge: bool = True,
+	logger: Logger = _logger,
 ):
-	return asyncio.run(check_responses_async(responses, check_cb, logger))
+	return asyncio.run(check_responses_async(responses, check_cb, use_common_knowledge, logger))
 
 async def check_responses_async(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
-	logger: Logger = getLogger(__name__),
+	use_common_knowledge: bool = True,
+	logger: Logger = _logger,
 ):
 	correct = 0
 	wrong = 0
@@ -38,7 +42,7 @@ async def check_responses_async(
 
 	tasks = execute_codes(
 		responses,
-		use_common_knowledge=False,
+		use_common_knowledge=use_common_knowledge,
 	)
 
 	for i, result in enumerate(tasks):
