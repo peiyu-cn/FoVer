@@ -26,15 +26,17 @@ def check_responses(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
 	use_common_knowledge: bool = True,
+	sync: bool = False,
 	logger: Logger = _logger,
 ):
-	return asyncio.run(check_responses_async(responses, check_cb, use_common_knowledge, logger))
+	return asyncio.run(check_responses_async(responses, check_cb, use_common_knowledge, sync, logger))
 
 async def check_responses_async(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
-	use_common_knowledge: bool = True,
-	logger: Logger = _logger,
+	use_common_knowledge: bool,
+	sync: bool,
+	logger: Logger,
 ):
 	correct = 0
 	wrong = 0
@@ -42,14 +44,18 @@ async def check_responses_async(
 	z3_failed = 0
 	total = 0
 
+	logger.debug('Executing %d responses...', len(responses))
 	tasks = execute_codes(
 		responses,
 		use_common_knowledge=use_common_knowledge,
+		sync=sync,
 	)
 
-	for i, result in enumerate(tasks):
+	i = -1
+	for task in tasks:
+		i += 1
 		logger.info('Checking response #%d...', i)
-		result = await tasks[i]
+		result = await task
 		if result[0] == True or result[0] == False and isinstance(result[1], TimeoutError):
 			if isinstance(result[1], TimeoutError):
 				# Execution timed out. It should be a Z3 failure, however, it is very possible that the result is False.

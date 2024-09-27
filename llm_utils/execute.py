@@ -1,4 +1,4 @@
-from typing import Any, Literal, Optional
+from typing import Any, Awaitable, Iterable, Literal, Optional
 import ast
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
@@ -28,13 +28,15 @@ def _switch_sorts_context(code: str) -> str:
 	code = re.sub(r"(Bool|Int)s\('([^\(\)']+)'\)", r"\1s('\2', ctx=l.context)", code)
 	return code
 
+_logger = getLogger(__name__)
+
 def execute_code(
 	code: str,
-	context: dict[str, Any] = {},
-	logger: Logger = getLogger(__name__),
-	use_common_knowledge: bool = True,
-	translate: bool = False,
-	timeout: Optional[float] = 5,
+	context: dict[str, Any],
+	logger: Logger,
+	use_common_knowledge: bool,
+	translate: bool,
+	timeout: Optional[float],
 ) -> "tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]":
 	queue = Queue()
 	process = Process(target=_execute_code, args=(queue, code, context, logger, use_common_knowledge, translate))
@@ -50,11 +52,47 @@ def execute_code(
 def execute_codes(
 	codes: list[str],
 	contexts: Optional[list[dict[str, Any]]] = None,
-	logger: Logger = getLogger(__name__),
+	logger: Logger = _logger,
 	use_common_knowledge: bool = True,
 	translate: bool = False,
 	timeout: Optional[float] = 5,
-) -> "list[asyncio.Future[tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]]]":
+	sync: bool = False,
+) -> "Iterable[Awaitable[tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]]]":
+	if sync:
+		return _execute_codes_sync(codes, contexts, logger, use_common_knowledge, translate, timeout)
+	else:
+		return _execute_codes_async(codes, contexts, logger, use_common_knowledge, translate, timeout)
+
+def _execute_codes_sync(
+	codes: list[str],
+	contexts: Optional[list[dict[str, Any]]],
+	logger: Logger,
+	use_common_knowledge: bool,
+	translate: bool,
+	timeout: Optional[float],
+):
+	from async_utils import SyncAwaitable
+	return [
+		SyncAwaitable(
+			execute_code,
+			code,
+			context,
+			logger,
+			use_common_knowledge,
+			translate,
+			timeout,
+		)
+		for code, context in zip(codes, contexts or [{}] * len(codes))
+	]
+
+def _execute_codes_async(
+	codes: list[str],
+	contexts: Optional[list[dict[str, Any]]],
+	logger: Logger,
+	use_common_knowledge: bool,
+	translate: bool,
+	timeout: Optional[float],
+):
 	loop = asyncio.get_running_loop()
 	with ProcessPoolExecutor() as pool:
 		tasks = [
@@ -70,7 +108,7 @@ def execute_codes(
 			)
 			for code, context in zip(codes, contexts or [{}] * len(codes))
 		]
-		return tasks
+	return asyncio.as_completed(tasks)
 
 def _execute_code(
 	queue: Queue,
