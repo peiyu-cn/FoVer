@@ -53,27 +53,52 @@ def langchain_request():
 		ids[0:20],
 		prompts[0:20],
 		model,
-		'data/langchain_response/z3py-3-shot-v6-reveal-strategyqa-claude35sonnet-0000-0020.json',
+		'data/langchain_response/z3py-3-shot-v20-reveal-strategyqa-claude35sonnet-0000-0020.json',
 		prefill='def',
 		max_concurrency=2,
 		retry_if_exception_type=(get_anthropic_api_error(),),
 	)
 
-def openai_check():
-	from llm_utils.openai_response import check_batch_response
-	from dataset_utils.proofwriter import check_result, get_data
-	# from dataset_utils.reveal import check_result, get_data
+def _reveal(
+	data_path: str = 'data/reveal/eval/reveal_eval.csv',
+	s: Optional[slice] = None,
+	filter: "Optional[Callable[[RevealRecord], bool]]" = lambda record: record['dataset'] == 'strategy_qa',
+):
+	from dataset_utils.reveal import check_result, get_data
+	source = get_data(data_path, filter=filter)
+	if s:
+		source = source[s]
+	return source, check_result
 
-	#source = get_data(filter = lambda record: record['dataset'] == 'strategy_qa')
-	#source = source[0:20]
-	source = get_data('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
-	source = source[0:100]
+def _proofwriter(
+	data_path: str = 'data/proofwriter/OWA/depth-5/meta-dev.jsonl',
+	s: Optional[slice] = None,
+):
+	from dataset_utils.proofwriter import check_result, get_data
+	source = get_data(data_path)
+	if s:
+		source = source[s]
+	return source, check_result
+
+def openai_check(
+	dataset: Literal['reveal', 'proofwriter'] = 'proofwriter',
+	data_path: str = 'data/proofwriter/OWA/depth-5/meta-dev.jsonl',
+	s: Optional[str] = None,
+):
+	from llm_utils.openai_response import check_batch_response
+	# from dataset_utils.proofwriter import check_result, get_data
+	from dataset_utils.reveal import check_result, get_data
+
+	source = get_data(filter = lambda record: record['dataset'] == 'strategy_qa')
+	source = source[0:20]
+	#source = get_data('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
+	#source = source[0:100]
 
 	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
-		#'data/batch_response/z3py-3-shot-v20-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
-		# lambda i, results: check_result(results, source[i]),
-		'data/batch_response/z3py-3-shot-v20-proofwriter-owa5-gpt4o0806-0000-0100-2.jsonl',
-		lambda i, results: check_result(results, source[i], allow_unknown=False),
+		'data/batch_response/z3py-3-shot-v20-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
+		lambda i, results: check_result(results, source[i]),
+		#'data/batch_response/z3py-3-shot-v20-proofwriter-owa5-gpt4o0806-0000-0100-2.jsonl',
+		#lambda i, results: check_result(results, source[i], allow_unknown=False),
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
@@ -86,7 +111,7 @@ def langchain_check():
 	source = source[0:20]
 
 	correct, wrong, llm_failed, z3_failed, total = check_langchain_response(
-		'data/langchain_response/z3py-3-shot-v6-reveal-strategyqa-claude35sonnet-0000-0020.json',
+		'data/langchain_response/z3py-3-shot-v20-reveal-strategyqa-claude35sonnet-0000-0020.json',
 		lambda i, results: check_result(results, source[i]),
 		prefill='def',
 	)
