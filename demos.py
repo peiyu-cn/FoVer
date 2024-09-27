@@ -312,21 +312,21 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 # converted NLI
 # from `QA2NLI/train.txt` line 4. label: not entailed
 ## User:
-"""Premises: A, B, and C are three balls, one is red, one is blue, and the other is yellow. C is bigger than the yellow ball, A and the blue ball are not the same size, and the blue ball is smaller than C
+"""Premises: A, B, and C are three balls, one is red, one is blue, and the other is yellow. C is bigger than the yellow ball, A and the blue ball are not the same size, and the blue ball is smaller than C.
 Conslusion: A is red, B is blue, C is yellow"""
 ## Assistant:
 def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly matches the target.
 	"""
 	Claims:
 	A, B, and C are three balls, one is red, one is blue, and the other is yellow.
-	C is bigger than the yellow ball
-	A and the blue ball are not the same size
+	C is bigger than the yellow ball,
+	A and the blue ball are not the same size,
 	the blue ball is smaller than C.
 
 	Target: A is red, B is blue, C is yellow.
 	Predicates: is (color), is (size). # is bigger, are not the same size, is smaller can be unified under is (size).
 	Parameters of predicates:
-		is (color): Ball is Color, *-to-1, (Ball) -> Color.
+		is (color): Ball is Color, 1-to-1, (Ball) -> Color. # "are three balls, one is ..." and "'the' yellow ball, ..." indicate that Ball-Color relation in this text is 1-to-1.
 			- Ball
 			- Color
 		is (size): Ball has size Int, *-to-1, (Ball) -> Int. # Any comparable type can be used for size. I just use Int for simplicity.
@@ -342,8 +342,8 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	l = Logic(**kwargs)
 
 	# Define types.
-	Ball = DeclareSort('Ball')
-	Color, (red, blue, yellow) = EnumSort('Color', ['red', 'blue', 'yellow']) # I use enum so that Z3 knows these 3 colors are different; otherwise, I must Distinct(red, blue, yellow).
+	Ball, (a, b, c) = EnumSort('Ball', ['A', 'B', 'C']) # We must be very careful when using EnumSort. I can use here and I shall use here because all claims in text about balls are about A, B, C, i.e., placeholders b* that will be used below will refer only to A, B, C (Exists b1 means one of A, B, C; ForAll b1 means all A, B, C).
+	Color = DeclareSort('Color')
 	# I shall use thease identifiers for placeholders: Ball: b*, Color: c*; Int: i*.
 
 	# Define functions with usage comments.
@@ -351,17 +351,22 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	b_size__int = Function('ball-size', Ball, IntSort()) # (Ball) -> Int, usage: b_size__int(Ball) = Int.
 
 	# Arrange instances.
-	a = Const('A', Ball)
-	b = Const('B', Ball)
-	c = Const('C', Ball)
+	red = Const('red', Color)
+	blue = Const('blue', Color)
+	yellow = Const('yellow', Color)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definitions = []
+		l.definitions = [
+			# Necessary constraints for 1-to-1 relations.
+			(
+				ForAll([b1, b2], (b__color(b1) == b__color(b2)) == (b1 == b2)),
+				"'Ball is Color' is an injective relation between Ball and Color."
+			),
+		]
 		# Claims from text
 		l.claims = [
-			(Distinct(a, b, c), "A, B, and C are three balls."),
 			(Exists([b1], b__color(b1) == red), "One ball is red."),
 			(Exists([b1], b__color(b1) == blue), "One ball is blue."),
 			(Exists([b1], b__color(b1) == yellow), "One ball is yellow."),
@@ -370,12 +375,14 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 			(ForAll([b1], Implies(b__color(b1) == blue, b_size__int(b1) < b_size__int(c))), "The blue ball is smaller than C."),
 		]
 		# Common sense
-		l.common_knowledge = []
+		l.common_knowledge = [
+			(Distinct(red, blue, yellow), "Red, blue, yellow are different colors."),
+		]
 		# Target.
 		l.assertions = [(And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow), "A is red, B is blue, C is yellow.")]
 
 	# All placeholders used: b1: Ball
-	b1, = Consts('b1', Ball)
+	b1, b2 = Consts('b1 b2', Ball)
 
 	_store()
 
