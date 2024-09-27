@@ -23,12 +23,12 @@ from z3_utils import Logic
 """Extract logic to Z3 Python API from the given text, faithfully, without judgment, following these steps:
 1. Identify the conclusion of the text (target).
 2. Collect all predicates from the text.
-3. Determine their parameters and return types (sorts).
+3. Determine their parameters and return types (sorts). (Whether they are predicative or relational, if relational, what is the kind of relation (1-to-1, *-to-1, *-to-*).)
 4. Sum up all sorts that is used by predicates.
 5. Collect all concepts from the text, determine their types (sorts).
 6. Pick sorts that are not types of collected concepts.
-7. For each sorts left, review the text to find out their instances, and identify the implicit predicates.
-8. Check whether the sorts need additional supplemental relations (predicates), determine their parameters (sorts), if any, and re-run step 6-8.
+7. For each sorts left, review the text to find out their instances, and identify the implicit predicates (what constitutes that sorts).
+8. Check whether the sorts need additional supplemental relations (predicates), determine their parameters (sorts), if any, and re-run step 6-8. A supplemental relation is an extra relation you need to support rest sorts in step 6, about what them could be related to according to the text.
 9. Review all predicates to see if some of them can be removed or merged.
 10. Sum up all sorts.
 
@@ -40,7 +40,7 @@ NOTICE:
 - `common_knowledge` MUST be COMMON and objectively TRUE.
 - Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[str, Expr]`. The first element is the description of the second element, MAKE SURE they match.
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations (p if q, p only if q, p if and only if q).
-- When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them at last.
+- When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them.
 - Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
 I repeat, MAKE SURE the usage of defined Z3 functions matches their signatures and meanings."""
 
