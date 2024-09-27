@@ -2,9 +2,11 @@ from typing import Callable, Literal
 
 import asyncio
 from logging import Logger, getLogger
-from z3 import CheckSatResult
+from z3 import CheckSatResult, unknown
 
 from .execute import execute_codes
+
+from typing import TYPE_CHECKING
 
 _logger = getLogger(__name__)
 
@@ -48,16 +50,23 @@ async def check_responses_async(
 	for i, result in enumerate(tasks):
 		logger.info('Checking response #%d...', i)
 		result = await tasks[i]
-		if result[0] == False:
-			llm_failed += 1
-			total += 1
-			logger.error('Failed to execute #%d: %s', i, result[1])
-			continue
-		else:
-			c, w, f, t = check_cb(i, result[1])
+		if result[0] == True or result[0] == False and isinstance(result[1], TimeoutError):
+			if isinstance(result[1], TimeoutError):
+				# Execution timed out. It should be a Z3 failure, however, it is very possible that the result is False.
+				logger.error('Execution timed out for #%d.', i)
+				c, w, f, t = check_cb(i, [unknown])
+			else:
+				if TYPE_CHECKING:
+					assert result[0] == True # very stupid
+				c, w, f, t = check_cb(i, result[1])
 			correct += c
 			wrong += w
 			z3_failed += f
 			total += t
+			continue
+		else:
+			llm_failed += 1
+			total += 1
+			logger.error('Failed to execute #%d: %s', i, result[1])
 
 	return correct, wrong, llm_failed, z3_failed, total

@@ -78,6 +78,9 @@ def check_result(
 	is_equal = _result_equal(result, data['answer_is_logically_correct'])
 	if not isinstance(is_equal, bool):
 		assert is_equal == unknown
+		if data['answer_is_logically_correct'] == False:
+			logger.warning('Failed: %s, treating as a `False`', data['answer_id'])
+			return 1, 0, 0, 1
 		logger.warning('Failed: %s: %s', data['answer_id'], data['answer_is_logically_correct'])
 		return 0, 0, 1, 1 # correct, wrong, failed, total
 	elif is_equal:

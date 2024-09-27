@@ -2,6 +2,7 @@ from typing import Any, Literal
 
 from logging import Logger, getLogger
 import json
+from z3.z3 import unknown
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -97,7 +98,11 @@ def check_result(
 	wrong = 0
 	failed = 0
 	total = len(data['questions'])
-	assert len(results) == total
+
+	if len(results) == 1 and results[0] == unknown:
+		return 0, 0, 1, 1
+
+	assert len(results) == total, f'len(results) ({len(results)}) does not match total answers {total}.'
 
 	for i in range(total):
 		is_equal = _result_equal(results[i], data['questions'][i]['answer'], allow_unknown, logger)
