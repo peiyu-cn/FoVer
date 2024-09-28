@@ -25,15 +25,17 @@ def process_response(content: str):
 def check_responses(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	use_definitions: bool = True,
 	use_common_knowledge: bool = True,
 	sync: bool = False,
 	logger: Logger = _logger,
 ):
-	return asyncio.run(check_responses_async(responses, check_cb, use_common_knowledge, sync, logger))
+	return asyncio.run(check_responses_async(responses, check_cb, use_definitions, use_common_knowledge, sync, logger))
 
 async def check_responses_async(
 	responses: list[str],
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	use_definitions: bool,
 	use_common_knowledge: bool,
 	sync: bool,
 	logger: Logger,
@@ -47,6 +49,7 @@ async def check_responses_async(
 	logger.debug('Executing %d responses...', len(responses))
 	tasks = execute_codes(
 		responses,
+		use_definitions=use_definitions,
 		use_common_knowledge=use_common_knowledge,
 		sync=sync,
 	)

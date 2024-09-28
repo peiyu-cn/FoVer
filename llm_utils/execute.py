@@ -34,12 +34,13 @@ def execute_code(
 	code: str,
 	context: dict[str, Any],
 	logger: Logger,
+	use_definitions: bool,
 	use_common_knowledge: bool,
 	translate: bool,
 	timeout: Optional[float],
 ) -> "tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]":
 	queue = Queue()
-	process = Process(target=_execute_code, args=(queue, code, context, logger, use_common_knowledge, translate))
+	process = Process(target=_execute_code, args=(queue, code, context, logger, use_definitions, use_common_knowledge, translate))
 	process.start()
 	process.join(timeout)
 	if process.is_alive():
@@ -53,20 +54,22 @@ def execute_codes(
 	codes: list[str],
 	contexts: Optional[list[dict[str, Any]]] = None,
 	logger: Logger = _logger,
+	use_definitions: bool = True,
 	use_common_knowledge: bool = True,
 	translate: bool = False,
 	timeout: Optional[float] = 5,
 	sync: bool = False,
 ) -> "Iterable[Awaitable[tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]]]":
 	if sync:
-		return _execute_codes_sync(codes, contexts, logger, use_common_knowledge, translate, timeout)
+		return _execute_codes_sync(codes, contexts, logger, use_definitions, use_common_knowledge, translate, timeout)
 	else:
-		return _execute_codes_async(codes, contexts, logger, use_common_knowledge, translate, timeout)
+		return _execute_codes_async(codes, contexts, logger, use_definitions, use_common_knowledge, translate, timeout)
 
 def _execute_codes_sync(
 	codes: list[str],
 	contexts: Optional[list[dict[str, Any]]],
 	logger: Logger,
+	use_definitions: bool,
 	use_common_knowledge: bool,
 	translate: bool,
 	timeout: Optional[float],
@@ -78,6 +81,7 @@ def _execute_codes_sync(
 			code,
 			context,
 			logger,
+			use_definitions,
 			use_common_knowledge,
 			translate,
 			timeout,
@@ -89,6 +93,7 @@ def _execute_codes_async(
 	codes: list[str],
 	contexts: Optional[list[dict[str, Any]]],
 	logger: Logger,
+	use_definitions: bool,
 	use_common_knowledge: bool,
 	translate: bool,
 	timeout: Optional[float],
@@ -102,6 +107,7 @@ def _execute_codes_async(
 				code,
 				context,
 				logger,
+				use_definitions,
 				use_common_knowledge,
 				translate,
 				timeout,
@@ -115,6 +121,7 @@ def _execute_code(
 	code: str,
 	context: dict[str, Any],
 	logger: Logger,
+	use_definitions: bool,
 	use_common_knowledge: bool,
 	translate: bool,
 ):
@@ -136,6 +143,7 @@ from z3_utils import Logic
 	logic: Logic
 	try:
 		logic = context[function_name](
+			use_definitions=use_definitions,
 			use_common_knowledge=use_common_knowledge,
 			translate=translate,
 		)

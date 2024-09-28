@@ -17,10 +17,13 @@ def get_assistant_content(result: str):
 def check_batch_response(
 	response_file_path: str,
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	use_definitions: bool = True,
+	use_common_knowledge: bool = True,
+	sync: bool = False,
 ):
 	with open(response_file_path, 'r', encoding='utf-8') as file:
 		responses = [
 			get_assistant_content(line)
 			for line in file
 		]
-	return check_responses(responses, check_cb)
+	return check_responses(responses, check_cb, use_definitions, use_common_knowledge, sync)

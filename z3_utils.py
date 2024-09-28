@@ -40,6 +40,7 @@ Expr = (
 
 class LogicBase:
 	def __init__(self,
+		use_definitions = True,
 		use_common_knowledge = True,
 		translate = False,
 		logger: Logger = getLogger(__name__),
@@ -48,6 +49,7 @@ class LogicBase:
 		self.context = kwargs.get("context", None)# or Context()
 		# kwargs["ctx"] = self.context
 		self.s = Solver(**kwargs)
+		self.use_definitions = use_definitions
 		self.use_common_knowledge = use_common_knowledge
 		if not translate:
 			self._switch_context = lambda exprs: exprs
@@ -135,7 +137,8 @@ class LogicBase:
 		Add the premises to the solver.
 		"""
 		if not self._added:
-			self._add2(self.definitions)
+			if self.use_definitions:
+				self._add2(self.definitions)
 			self._add2(self.claims)
 			if self.use_common_knowledge:
 				self._add2(self.common_knowledge)
@@ -199,7 +202,7 @@ class Logic(LogicBase):
 		for i, assertion in enumerate(self._get_expr(self._assertions)):
 			if assertion in self._get_expr(self.definitions):
 				self._logger.error('Assertion #%d (%s) is inluded in definitions.', i, assertion)
-				assert False, 'Definitions should not include assertions.'
+				assert not self.use_definitions, 'Definitions should not include assertions.'
 			elif assertion in self._get_expr(self.common_knowledge):
 				self._logger.error('Assertion #%d (%s) is inluded in common knowledge.', i, assertion)
 				assert not self.use_common_knowledge, 'Common knowledge should not include assertions.'
