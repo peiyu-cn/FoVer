@@ -10,6 +10,9 @@ def check_langchain_response(
 	response_file_path: str,
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
 	prefill: Optional[str] = None,
+	use_definitions: bool = True,
+	use_common_knowledge: bool = True,
+	sync: bool = False,
 	logger: Logger = getLogger(__name__),
 ):
 	with open(response_file_path, 'r', encoding='utf-8') as file:
@@ -47,5 +50,6 @@ def check_langchain_response(
 		# TOO COMPLICATED
 		return check_cb(i_r[i], results)
 
-	correct, wrong, llm_failed, z3_failed, total = check_responses(responses, check_cb_wrapper)
+	correct, wrong, llm_failed, z3_failed, total = check_responses(
+		responses, check_cb_wrapper, use_definitions, use_common_knowledge, sync)
 	return correct, wrong, llm_failed + len(failures), z3_failed, total + len(failures)

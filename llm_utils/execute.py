@@ -1,11 +1,12 @@
 from typing import Any, Awaitable, Iterable, Literal, Optional
+
 import ast
 import asyncio
-from concurrent.futures import ProcessPoolExecutor
 from logging import Logger, getLogger, DEBUG
 from multiprocessing import Process, Queue
 import re
 
+from async_utils import wrap_function_async
 from z3_utils import Logic
 
 from typing import TYPE_CHECKING
@@ -99,10 +100,9 @@ def _execute_codes_async(
 	timeout: Optional[float],
 ):
 	loop = asyncio.get_running_loop()
-	with ProcessPoolExecutor() as pool:
-		tasks = [
-			loop.run_in_executor(
-				pool,
+	tasks = [
+		loop.create_task(
+			wrap_function_async(
 				execute_code,
 				code,
 				context,
@@ -112,8 +112,9 @@ def _execute_codes_async(
 				translate,
 				timeout,
 			)
-			for code, context in zip(codes, contexts or [{}] * len(codes))
-		]
+		)
+		for code, context in zip(codes, contexts or [{}] * len(codes))
+	]
 	return tasks
 
 def _execute_code(

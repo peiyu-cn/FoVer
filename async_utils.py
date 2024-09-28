@@ -15,3 +15,9 @@ class SyncAwaitable(Awaitable[T], Generic[P, T]):
 	def __await__(self):
 		yield
 		return self._task(*self._args, **self._kwargs)
+
+async def wrap_function_async(func: Callable[P, T], *args: P.args, **kwargs: P.kwargs) -> T:
+	"""
+	Wrap a synchronous function as an asynchronous function.
+	"""
+	return func(*args, **kwargs)
