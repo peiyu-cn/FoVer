@@ -37,6 +37,7 @@ You need to define a python function to store `definitions`, `claims`, `common_k
 
 NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit or supplemental predicates.
+For example, cat, Pet, Animal may appear in the same text, and cat could be both Pet and Animal. In such cases, you should define a supplemental relation `a_as__pet` to create an instance of Pet from given Animal, to fit other predicates that need cat as Pet, if you declare cat as Animal; otherwise, you should define `p_as__animal` reversely to create Animal instance.
 - `common_knowledge` MUST be COMMON and objectively TRUE.
 - Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[str, Expr]`. The first element is the description of the second element, MAKE SURE they match.
 - Be faithful to claims and targets. Do not move some part of the text to `definitions` or `common_knowledge`; `definitions` and `common_knowledge` should NOT include any of claims and targets.
