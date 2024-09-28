@@ -7,9 +7,11 @@ if TYPE_CHECKING:
 
 def openai_request():
 	from llm_utils.openai_request import generate_batch, submit_batch
-	from dataset_utils.proofwriter import generate_prompts
-	# from dataset_utils.reveal import generate_prompts
+	from dataset_utils.folio import generate_prompts
+	#from dataset_utils.proofwriter import generate_prompts
+	#from dataset_utils.reveal import generate_prompts
 
+	prompts = generate_prompts('data/FOLIO/folio_v2_train.jsonl')
 	#prompts, ids = generate_prompts(
 	#	filter=lambda record: record['dataset'] == 'strategy_qa',
 	#	return_ids=True,
@@ -17,14 +19,16 @@ def openai_request():
 	#if TYPE_CHECKING:
 	#	assert isinstance(prompts, list) # idiot pylance
 	#	assert isinstance(ids, list) # even more idiot
-	prompts = generate_prompts('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
+	#prompts = generate_prompts('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
 	outfile = generate_batch(
 		prompts,
-		0, 100,
-		'z3py-3-shot-v20-proofwriter-owa5-gpt4o0806',
+		0, 20,
+		'z3py-3-shot-v21-folio-train-gpt4o0806',
+		#'z3py-3-shot-v20-proofwriter-owa5-gpt4o0806',
+		#'z3py-3-shot-v21-reveal-strategyqa-gpt4o0806',
 		'gpt-4o-2024-08-06',
 		#custom_ids=ids,
-		max_tokens=4096,
+		#max_tokens=4096,
 	)
 	input('Press Enter to submit batch.')
 	submit_batch(outfile)
@@ -86,16 +90,19 @@ def openai_check(
 	s: Optional[str] = None,
 ):
 	from llm_utils.openai_response import check_batch_response
+	from dataset_utils.folio import check_result, get_data
 	# from dataset_utils.proofwriter import check_result, get_data
-	from dataset_utils.reveal import check_result, get_data
+	# from dataset_utils.reveal import check_result, get_data
 
-	source = get_data(filter = lambda record: record['dataset'] == 'strategy_qa')
+	source = get_data('data/FOLIO/folio_v2_train.jsonl')
+	#source = get_data(filter = lambda record: record['dataset'] == 'strategy_qa')
 	source = source[0:20]
 	#source = get_data('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
 	#source = source[0:100]
 
 	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
-		'data/batch_response/z3py-3-shot-v20-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
+		'data/batch_response/z3py-3-shot-v21-folio-train-gpt4o0806-0000-0020.jsonl',
+		#'data/batch_response/z3py-3-shot-v21-reveal-strategyqa-gpt4o0806-0000-0020.jsonl',
 		lambda i, results: check_result(results, source[i]),
 		#'data/batch_response/z3py-3-shot-v20-proofwriter-owa5-gpt4o0806-0000-0100-2.jsonl',
 		#lambda i, results: check_result(results, source[i], allow_unknown=False),
