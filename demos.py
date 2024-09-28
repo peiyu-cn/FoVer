@@ -39,10 +39,11 @@ NOTICE:
 - A concept belongs to ONLY ONE sort. If you find multiple, you find implicit or supplemental predicates.
 - `common_knowledge` MUST be COMMON and objectively TRUE.
 - Elements of `definitions`, `claims`, `common_knowledge`, and `assertions` are `tuple[str, Expr]`. The first element is the description of the second element, MAKE SURE they match.
+- Be faithful to claims and targets. Do not move some part of the text to `definitions` or `common_knowledge`; `definitions` and `common_knowledge` should NOT include any of claims and targets.
 - Pay special attention to the usage of implication and equivalence, distinguish between one-way and two-way relations (p if q, p only if q, p if and only if q).
 - When using quantifiers, ensure they are declared in parent Forall or Exists. And remember to define placeholders for them.
-- Be extremely careful when using defined Z3 functions, make sure the parameters and return types correspond to their signatures.
-I repeat, MAKE SURE the usage of defined Z3 functions matches their signatures and meanings."""
+- Be extremely careful when using defined Z3 functions. Review their signatures and meanings, and review the definitions of parameters you want to use. MAKE SURE types of parameters & returns of functions correspond to their signatures.
+Also, make sure types on both sides of equations are the same."""
 
 # %% [markdown] Bamboogle demos
 # ## Bamboogle demos
