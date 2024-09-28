@@ -114,7 +114,7 @@ def _execute_codes_async(
 			)
 			for code, context in zip(codes, contexts or [{}] * len(codes))
 		]
-	return asyncio.as_completed(tasks)
+	return tasks
 
 def _execute_code(
 	queue: Queue,
