@@ -157,7 +157,7 @@ def president_of_us_when_superconductivity_was_discovered_was_woodrowwilson(**kw
 			president_of_r_when_e_happen__person(us, discover_n_as__event(superconductivity)) == woodrowwilson
 		)]
 
-	# All placeholders used: p1: Person, e1: Event, r1: Region, i1: Int
+	# All placeholders used: n1, n2: Newthing, p1: Person, e1: Event, r1: Region, i1: Int
 	n1, n2 = Consts('n1 n2', Newthing)
 	p1, = Consts('p1', Person)
 	e1, = Consts('e1', Event)
@@ -382,7 +382,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		# Target.
 		l.assertions = [("A is red, B is blue, C is yellow.", And(b__color(a) == red, b__color(b) == blue, b__color(c) == yellow))]
 
-	# All placeholders used: b1: Ball
+	# All placeholders used: b1, b2: Ball
 	b1, b2 = Consts('b1 b2', Ball)
 
 	_store()
