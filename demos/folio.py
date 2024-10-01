@@ -30,16 +30,16 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	Target: William Dickinson did not get a seat in Parliament.
 	Predicates: be politician, sit in, attend school, attend university, be located in, support, get seat in.
 	Parameters of predicates:
-		be British politician: Person be British politician, *-bool, (Person) -> Bool.
+		be British politician: Person be British politician, *-bool, (Person) -> Bool. # Simple case, all predicates are predicative.
 			- Person
-		sit in: Person sit in Institution, *-to-*, (Person, Institution) -> Bool.
+		sit in: Person sit in Institution, *-bool, (Person, Institution) -> Bool.
 			- Institution
-		attend school: Person attend School, *-to-*, (Person, School) -> Bool.
+		attend school: Person attend School, *-bool, (Person, School) -> Bool.
 			- School
-		locate in: School locate in Country, *-to-1, (Institution) -> Country.
-		support: Person support PoliticalGroup, *-to-*, (Person, PoliticalGroup) -> Bool.
+		locate in: School locate in Country, *-bool, (Institution, Country) -> Bool.
+		support: Person support PoliticalGroup, *-bool, (Person, PoliticalGroup) -> Bool.
 			- PoliticalGroup
-		get seat in: Person get seat in Institution, *-to-*, (Person, Institution) -> Bool.
+		get seat in: Person get seat in Institution, *-bool, (Person, Institution) -> Bool.
 	All sorts by now: Person, Institution, School, Country, PoliticalGroup.
 	Concepts: William Dickinson, House of Commons, Westminster school, University of Edinburgh, United Kingdom, Portland Whigs, Parliament.
 		- William Dickinson: Person
@@ -69,7 +69,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	p_is_british_pilitician = Function('is-British-Politician', Person, BoolSort()) # (Person) -> Bool, usage: p_is_british_pilitician(Person).
 	p_sit_in_i = Function('sit-in', Person, Institution, BoolSort()) # (Person, Institution) -> Bool, usage: p_sit_in_i(Person, Institution).
 	p_attend_s = Function('attend-school', Person, School, BoolSort()) # (Person, School) -> Bool, usage: p_attend_s(Person, School).
-	i_location__country = Function('location', School, Country) # (School) -> Country, usage: i_location__country(School) = Country.
+	s_locate_in_c = Function('location', School, Country, BoolSort()) # (School, Country) -> Bool, usage: s_locate_in_c(School, Country).
 	p_support_pg = Function('support', Person, PoliticalGroup, BoolSort()) # (Person, PoliticalGroup) -> Bool, usage: p_support_pg(Person, PoliticalGroup).
 	p_get_seat_in_i = Function('get-seat-in', Person, Institution, BoolSort()) # (Person, Institution) -> Bool, usage: p_get_seat_in_i(Person, Institution).
 
@@ -85,7 +85,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definitions = []
+		l.definitions = [] # Simple case, no relational predicate, therefore no definition.
 		# Claims from text
 		l.claims = [
 			(
@@ -104,7 +104,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 			),
 			(
 				"The University of Edinburgh is a university located in the United Kingdom.",
-				i_location__country(universityofedinburgh) == unitedkingdom
+				s_locate_in_c(universityofedinburgh, unitedkingdom)
 			),
 			(
 				"William Dickinson supported the Portland Whigs.",
@@ -116,7 +116,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 			),
 		]
 		# Common sense
-		l.common_knowledge = []
+		l.common_knowledge = [] # Simple case, no common knowledge.
 		# Target.
 		l.assertions = [(
 			"William Dickinson did not get a seat in Parliament.",

@@ -68,7 +68,7 @@ def check_result(
 	results: "list[bool | CheckSatResult]",
 	data: Entry,
 	logger: Logger = getLogger(__name__),
-) -> tuple[Literal[0, 1], Literal[0, 1], Literal[0], Literal[1]]:
+) -> tuple[Literal[0, 1], Literal[0, 1], Literal[0, 1], Literal[1]]:
 	from z3 import unknown
 
 	assert len(results) == 1
@@ -77,7 +77,8 @@ def check_result(
 	is_equal = _result_equal(result, data['label'])
 	if not isinstance(is_equal, bool):
 		assert is_equal == unknown
-		assert False, 'Should not get unknown result.'
+		logger.error('Failed: %d: %s', data['example_id'], data['label'])
+		return 0, 0, 1, 1
 	elif is_equal:
 		return 1, 0, 0, 1
 	else:
