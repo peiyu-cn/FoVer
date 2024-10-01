@@ -43,7 +43,7 @@ def parse_record(record: str) -> Entry:
 	}
 
 def generate_prompt(entry: Entry):
-	return 'Premises:\n' + entry['premises'] + '\n\nConclusion: ' + entry['conclusion']
+	return 'Premises:\n' + entry['premises'] + '\n\nConclusion: ' + entry['conclusion'] + '\n(Simple case does not need complex predicates and common knowledge.)'
 
 def generate_prompts(
 	data_path='data/FOLIO/folio_v2_train.jsonl',

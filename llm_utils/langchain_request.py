@@ -14,11 +14,12 @@ if TYPE_CHECKING:
 def batch_request(
 	user_prompts: list[str],
 	model: BaseChatModel,
+	additional_path: Optional[str] = None,
 	prefill: Optional[str] = None,
 	max_concurrency: int = 8,
 	**retry_kwargs,
 ):
-	system, messages = get_demos()
+	system, messages = get_demos(additional_path=additional_path)
 	msgs = get_langchain_template(system, messages, prefill)
 
 	chain = ChatPromptTemplate.from_messages(msgs) | model | StrOutputParser()
@@ -38,6 +39,7 @@ def request_and_save(
 	user_prompts: list[str],
 	model: BaseChatModel,
 	output_file: str,
+	additional_path: Optional[str] = None,
 	prefill: Optional[str] = None,
 	max_concurrency: int = 8,
 	**retry_kwargs,
@@ -45,7 +47,14 @@ def request_and_save(
 	import json
 
 	assert len(custom_ids) == len(user_prompts)
-	responses = batch_request(user_prompts, model, prefill, max_concurrency, **retry_kwargs)
+	responses = batch_request(
+		user_prompts,
+		model,
+		additional_path=additional_path,
+		prefill=prefill,
+		max_concurrency=max_concurrency,
+		**retry_kwargs
+	)
 	with open(output_file, 'w', encoding='utf-8') as file:
 		json.dump([
 			{

@@ -221,6 +221,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 		- Tony: Person
 	Rest sorts: .
 	Supplemental predicates: .
+	Removed & merged predicates: .
 	All sorts: Person, Place, Time; Bool.
 	"""
 	# Initialize an instance of Logic with given arguments.
@@ -337,6 +338,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 		- red, blue, yellow: Color
 	Rest sorts: .
 	Supplemental predicates: .
+	Removed & merged predicates: .
 	All sorts: Ball, Color; Int.
 	"""
 	# Initialize an instance of Logic with given arguments.

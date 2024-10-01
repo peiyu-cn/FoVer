@@ -41,7 +41,8 @@ def _parse_demo(
 	]
 
 def get_demos(
-	file_path = 'demos.py',
+	file_path = 'demos/common.py',
+	additional_path: Optional[str] = None,
 ):
 	# Read the file
 	with open(file_path, 'r', encoding='utf-8') as file:
@@ -56,6 +57,14 @@ def get_demos(
 
 	# Get prompts
 	demos = rest.split('# %% demo')
+
+	# Get additional prompts
+	if additional_path:
+		with open(additional_path, 'r', encoding='utf-8') as file:
+			additional_content = file.read()
+		additional_demos = additional_content.split('# %% demo')
+		demos.extend(additional_demos[1:])
+
 	demos_message_pairs = [_parse_demo(demo) for demo in demos[1:]]
 
 	return system, demos_message_pairs
