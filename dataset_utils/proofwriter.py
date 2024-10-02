@@ -2,7 +2,6 @@ from typing import Any, Literal
 
 from logging import Logger, getLogger
 import json
-from z3.z3 import unknown
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -94,6 +93,8 @@ def check_result(
 	allow_unknown: bool = False,
 	logger: Logger = getLogger(__name__),
 ):
+	from z3.z3 import unknown
+
 	correct = 0
 	wrong = 0
 	failed = 0

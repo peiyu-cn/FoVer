@@ -30,57 +30,46 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	Target: William Dickinson did not get a seat in Parliament.
 	Predicates: be politician, sit in, attend school, attend university, be located in, support, get seat in.
 	Parameters of predicates:
-		be British politician: Person be British politician, *-bool, (Person) -> Bool. # Simple case, all predicates are predicative.
-			- Person
-		sit in: Person sit in Institution, *-bool, (Person, Institution) -> Bool.
-			- Institution
-		attend school: Person attend School, *-bool, (Person, School) -> Bool.
-			- School
-		locate in: School locate in Country, *-bool, (Institution, Country) -> Bool.
-		support: Person support PoliticalGroup, *-bool, (Person, PoliticalGroup) -> Bool.
-			- PoliticalGroup
-		get seat in: Person get seat in Institution, *-bool, (Person, Institution) -> Bool.
-	All sorts by now: Person, Institution, School, Country, PoliticalGroup.
-	Concepts: William Dickinson, House of Commons, Westminster school, University of Edinburgh, United Kingdom, Portland Whigs, Parliament.
-		- William Dickinson: Person
-		- House of Commons: Institution
-		- Westminster school: School
-		- University of Edinburgh: School
-		- United Kingdom: Country
-		- Portland Whigs: PoliticalGroup
-		- Parliament: Institution
+		is a: Entity is Entity, *-bool, (Entity, Entity) -> Bool. # Simple case
+			- Entity
+		sit in: Entity sit in Entity, *-bool, (Entity, Entity) -> Bool.
+		attend: Entity attend Entity, *-bool, (Entity, Entity) -> Bool.
+		locate in: Entity locate in Entity, *-bool, (Entity, Entity) -> Bool.
+		support: Entity support Entity, *-bool, (Entity, Entity) -> Bool.
+		get seat in: Entity get seat in Entity, *-bool, (Entity, Entity) -> Bool.
+	All sorts by now: Entity
+	Concepts: William Dickinson, British politician, House of Commons, Westminster school, University of Edinburgh, university, United Kingdom, Portland Whigs, Parliament.
+		- William Dickinson, British politician, House of Commons, Westminster school, University of Edinburgh, university, United Kingdom, Portland Whigs, Parliament: Entity
 	Rest sorts: .
 	Supplemental predicates: .
 	Removed & merged predicates: .
-	All sorts: Person, Institution, School, Country, PoliticalGroup; Bool.
+	All sorts: Entity; Bool.
 	"""
 	# Initialize an instance of Logic with given arguments.
 	l = Logic(**kwargs)
 
 	# Define types.
-	Person = DeclareSort('Person')
-	Institution = DeclareSort('Institution')
-	School = DeclareSort('School')
-	Country = DeclareSort('Country')
-	PoliticalGroup = DeclareSort('PoliticalGroup')
-	# I shall use these identifiers for placeholders: Person: p*, Institution: i*, School: s*, Country: c*, PoliticalGroup: pg*; Bool: b*.
+	Entity = DeclareSort('Entity')
+	# I shall use these identifiers for placeholders: Entity: e*; Bool: b*.
 
 	# Define functions with usage comments.
-	p_is_british_pilitician = Function('is-British-Politician', Person, BoolSort()) # (Person) -> Bool, usage: p_is_british_pilitician(Person).
-	p_sit_in_i = Function('sit-in', Person, Institution, BoolSort()) # (Person, Institution) -> Bool, usage: p_sit_in_i(Person, Institution).
-	p_attend_s = Function('attend-school', Person, School, BoolSort()) # (Person, School) -> Bool, usage: p_attend_s(Person, School).
-	s_locate_in_c = Function('location', School, Country, BoolSort()) # (School, Country) -> Bool, usage: s_locate_in_c(School, Country).
-	p_support_pg = Function('support', Person, PoliticalGroup, BoolSort()) # (Person, PoliticalGroup) -> Bool, usage: p_support_pg(Person, PoliticalGroup).
-	p_get_seat_in_i = Function('get-seat-in', Person, Institution, BoolSort()) # (Person, Institution) -> Bool, usage: p_get_seat_in_i(Person, Institution).
+	e_a_is_e_b = Function('is-a', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is Entity b, usage: e_a_is_e_b(Entity, Entity).
+	e_a_sit_in_e_b = Function('sit-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a sit in Entity b, usage: e_a_sit_in_e_b(Entity, Entity).
+	e_a_attend_e_b = Function('attend', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a attend Entity b, usage: e_a_attend_e_b(Entity, Entity).
+	e_a_locate_in_e_b = Function('locate-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a locate in Entity b, usage: e_a_locate_in_e_b(Entity, Entity).
+	e_a_support_e_b = Function('support', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a support Entity b, usage: e_a_support_e_b(Entity, Entity).
+	e_a_get_seat_in_e_b = Function('get-seat-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a get seat in Entity b, usage: e_a_get_seat_in_e_b(Entity, Entity).
 
 	# Arrange instances.
-	williamdickinson = Const('William Dickinson', Person)
-	houseofcommons = Const('House of Commons', Institution)
-	westminsterschool = Const('Westminster school', School)
-	universityofedinburgh = Const('University of Edinburgh', School)
-	unitedkingdom = Const('United Kingdom', Country)
-	portlandwhigs = Const('Portland Whigs', PoliticalGroup)
-	parliament = Const('Parliament', Institution)
+	williamdickinson = Const('William Dickinson', Entity)
+	britishpolitician = Const('British politician', Entity)
+	houseofcommons = Const('House of Commons', Entity)
+	westminsterschool = Const('Westminster school', Entity)
+	universityofedinburgh = Const('University of Edinburgh', Entity)
+	university = Const('university', Entity)
+	unitedkingdom = Const('United Kingdom', Entity)
+	portlandwhigs = Const('Portland Whigs', Entity)
+	parliament = Const('Parliament', Entity)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
@@ -91,28 +80,31 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 			(
 				"William Dickinson was a British politician who sat in the House of Commons",
 				And(
-					p_is_british_pilitician(williamdickinson),
-					p_sit_in_i(williamdickinson, houseofcommons)
+					e_a_is_e_b(williamdickinson, britishpolitician),
+					e_a_sit_in_e_b(williamdickinson, houseofcommons)
 				)
 			),
 			(
 				"William Dickinson attended Westminster school for high school and then the University of Edinburgh.",
 				And(
-					p_attend_s(williamdickinson, westminsterschool),
-					p_attend_s(williamdickinson, universityofedinburgh)
+					e_a_attend_e_b(williamdickinson, westminsterschool),
+					e_a_attend_e_b(williamdickinson, universityofedinburgh)
 				)
 			),
 			(
 				"The University of Edinburgh is a university located in the United Kingdom.",
-				s_locate_in_c(universityofedinburgh, unitedkingdom)
+				And(
+					e_a_is_e_b(universityofedinburgh, university),
+					e_a_locate_in_e_b(universityofedinburgh, unitedkingdom)
+				)
 			),
 			(
 				"William Dickinson supported the Portland Whigs.",
-				p_support_pg(williamdickinson, portlandwhigs)
+				e_a_support_e_b(williamdickinson, portlandwhigs)
 			),
 			(
 				"People who supported the Portland Whigs did not get a seat in the Parliament.",
-				ForAll([p1], Implies(p_support_pg(p1, portlandwhigs), Not(p_get_seat_in_i(p1, parliament))))
+				ForAll([e1], Implies(e_a_support_e_b(e1, portlandwhigs), Not(e_a_get_seat_in_e_b(e1, parliament))))
 			),
 		]
 		# Common sense
@@ -120,11 +112,11 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 		# Target.
 		l.assertions = [(
 			"William Dickinson did not get a seat in Parliament.",
-			Not(p_get_seat_in_i(williamdickinson, parliament))
+			Not(e_a_get_seat_in_e_b(williamdickinson, parliament))
 		)]
 
-	# All placeholders used: p1: Person
-	p1, = Consts('p1', Person)
+	# All placeholders used: e1: Entity
+	e1, = Consts('e1', Entity)
 
 	_store()
 
