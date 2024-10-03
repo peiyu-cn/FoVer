@@ -9,7 +9,7 @@ from .langchain_utils import BatchCallback
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from pydantic.v1.types import SecretStr
+	from pydantic.types import SecretStr
 
 def batch_request(
 	user_prompts: list[str],

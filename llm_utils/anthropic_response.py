@@ -1,0 +1,30 @@
+from typing import Callable, Optional
+
+import json
+from z3.z3 import CheckSatResult
+
+from .response import process_response, check_responses
+
+def get_assistant_content(result: str, prefill: Optional[str] = None):
+	j = json.loads(result)
+	content: list[dict] = j['content']
+	assert len(content) == 1
+	text: str = content[0]['text']
+	if prefill:
+		text = prefill + text
+	return process_response(text)
+
+def check_batch_response(
+	response_file_path: str,
+	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	prefill: Optional[str] = None,
+	use_definitions: bool = True,
+	use_common_knowledge: bool = True,
+	sync: bool = False,
+):
+	with open(response_file_path, 'r', encoding='utf-8') as file:
+		responses = [
+			get_assistant_content(line, prefill)
+			for line in file
+		]
+	return check_responses(responses, check_cb, use_definitions, use_common_knowledge, sync)

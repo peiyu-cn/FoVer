@@ -63,6 +63,26 @@ def langchain_request():
 		retry_if_exception_type=(get_anthropic_api_error(),),
 	)
 
+def anthropic_request():
+	from llm_utils.anthropic_request import batch_request_async
+	from dataset_utils.proofwriter import generate_prompts
+	prompts, ids = generate_prompts(
+		'data/proofwriter/OWA/depth-5/meta-dev.jsonl',
+		return_ids=True,
+	)
+	prompts = prompts[0:20]
+	if TYPE_CHECKING:
+		assert isinstance(prompts, list) # idiot pylance
+		assert isinstance(ids, list) # even more idiot
+	asyncio.run(batch_request_async(
+		prompts,
+		'claude-3-5-sonnet-20240620',
+		'data/anthropic_response/z3py-3-shot-v24-proofwriter-owa5-claude35sonnet-0000-0020.jsonl',
+		prefill='def',
+		max_tokens=4096,
+		max_concurrency=2,
+	))
+
 def _reveal(
 	data_path: str = 'data/reveal/eval/reveal_eval.csv',
 	s: Optional[slice] = None,
@@ -121,6 +141,24 @@ def langchain_check():
 		'data/langchain_response/z3py-3-shot-v20-reveal-strategyqa-claude35sonnet-0000-0020.json',
 		lambda i, results: check_result(results, source[i]),
 		prefill='def',
+		use_common_knowledge=False,
+		#sync=True,
+	)
+	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
+
+def anthropic_check():
+	from llm_utils.anthropic_response import check_batch_response
+	from dataset_utils.proofwriter import check_result, get_data
+
+	source = get_data('data/proofwriter/OWA/depth-5/meta-dev.jsonl')
+	source = source[0:20]
+
+	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
+		'data/anthropic_response/z3py-3-shot-v24-proofwriter-owa5-claude35sonnet-0000-0020.jsonl',
+		lambda i, results: check_result(results, source[i], allow_unknown=True),
+		prefill='def',
+		use_definitions=False,
+		use_common_knowledge=False,
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
@@ -132,7 +170,7 @@ if __name__ == '__main__':
 	parser.add_argument('method',
 		choices=[
 			method.__name__
-			for method in [openai_request, langchain_request, openai_check, langchain_check]
+			for method in [openai_request, langchain_request, anthropic_request, openai_check, langchain_check, anthropic_check]
 		],
 		help='method to run')
 	parser.add_argument('-l', '--log-level',

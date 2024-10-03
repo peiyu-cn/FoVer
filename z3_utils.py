@@ -55,6 +55,8 @@ class LogicBase:
 			self._switch_context = lambda exprs: exprs
 		self._logger = logger
 		self._added = False
+		self._definitions = []
+		self._common_knowledge = []
 
 	def _preprocess(self,
 		property_name: Literal['definitions', 'claims', 'common_knowledge', 'assertions'],
