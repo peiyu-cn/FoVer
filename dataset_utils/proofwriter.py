@@ -59,12 +59,21 @@ def generate_prompt(entry: "Entry"):
 
 def generate_prompts(
 	data_path: str,
+	return_ids: Literal[True, False] = False,
 ):
-	with open(data_path, 'r', encoding='utf-8') as file:
-		return [
-			generate_prompt(parse_record(line))
-			for line in file
-		]
+	data = get_data(data_path)
+	
+	prompts: list[str] = []
+	ids: list[str] = []
+	for entry in data:
+		prompt = generate_prompt(entry)
+		prompts.append(prompt)
+		ids.append(entry['id'])
+
+	if return_ids:
+		return prompts, ids
+	else:
+		return prompts
 
 def _result_equal(
 	judge_result: "bool | CheckSatResult",
