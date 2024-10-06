@@ -99,9 +99,8 @@ def _execute_codes_async(
 	translate: bool,
 	timeout: Optional[float],
 ):
-	loop = asyncio.get_running_loop()
 	tasks = [
-		loop.create_task(
+		asyncio.create_task(
 			wrap_function_async(
 				execute_code,
 				code,

@@ -97,17 +97,19 @@ async def batch_request_async(
 
 	results = []
 
-	with open(output_file, 'w', encoding='utf-8') as file:
+	with open(output_file, 'w', encoding='utf-8') as file, tqdm(total=len(prompts)) as pbar:
 		r0 = await coros[0]
+		pbar.update()
 		results.append(r0)
 		print(r0.to_json(indent=None), file=file)
-		for i in tqdm(range(1, len(prompts), max_concurrency)):
+		for i in range(1, len(prompts), max_concurrency):
 			tasks = [
 				asyncio.create_task(coros[j])
 				for j in range(i, min(i + max_concurrency, len(prompts)))
 			]
 			for task in tasks:
 				result = await task
+				pbar.update()
 				results.append(result)
 				print(result.to_json(indent=None), file=file)
 
