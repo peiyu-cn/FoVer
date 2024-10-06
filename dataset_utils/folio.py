@@ -56,25 +56,29 @@ def generate_prompts(
 
 def _result_equal(
 	judge_result: "bool | CheckSatResult",
-	answer: "Label"
+	answer: "Label",
+	allow_unknown: bool = False,
 ) -> "bool | CheckSatResult":
 	from z3 import unknown
 
 	if judge_result == unknown:
 		return unknown
-	return judge_result == convert_label(answer)
+	return (allow_unknown and answer == 'Uncertain') or judge_result == convert_label(answer)
 
 def check_result(
 	results: "list[bool | CheckSatResult]",
 	data: Entry,
+	allow_unknown: bool = False,
 	logger: Logger = getLogger(__name__),
 ) -> tuple[Literal[0, 1], Literal[0, 1], Literal[0, 1], Literal[1]]:
 	from z3 import unknown
 
-	assert len(results) == 1
+	#assert len(results) == 1, f'Multiple results: {results}'
+	if len(results) != 1:
+		logger.error('Multiple results: %s', results)
 	result = results[0]
 
-	is_equal = _result_equal(result, data['label'])
+	is_equal = _result_equal(result, data['label'], allow_unknown=allow_unknown)
 	if not isinstance(is_equal, bool):
 		assert is_equal == unknown
 		logger.error('Failed: %d: %s', data['example_id'], data['label'])

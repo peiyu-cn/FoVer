@@ -112,7 +112,10 @@ def check_result(
 	if len(results) == 1 and results[0] == unknown:
 		return 0, 0, 1, 1
 
-	assert len(results) == total, f'len(results) ({len(results)}) does not match total answers {total}.'
+	#assert len(results) == total, f'len(results) ({len(results)}) does not match total answers {total}.'
+	if len(results) != total:
+		logger.error('len(results) (%d) does not match total answers %d.', len(results), total)
+		return 0, 1, 0, 1
 
 	for i in range(total):
 		is_equal = _result_equal(results[i], data['questions'][i]['answer'], allow_unknown, logger)
