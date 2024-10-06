@@ -13,10 +13,11 @@ William Dickinson was a British politician who sat in the House of Commons
 William Dickinson attended Westminster school for high school and then the University of Edinburgh.
 The University of Edinburgh is a university located in the United Kingdom.
 William Dickinson supported the Portland Whigs.
+William Thornton Dickinson is another name for William Dickinson.
 People who supported the Portland Whigs did not get a seat in the Parliament.
 
 Conclusion: William Dickinson did not get a seat in Parliament.
-(Simple case does not need complex predicates and common knowledge.)"""
+(Simple case does not need complex predicates and common knowledge apart from distinction and equivalence.)"""
 ## Assistant:
 def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	"""
@@ -25,6 +26,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	William Dickinson attended Westminster school for high school and then the University of Edinburgh.
 	The University of Edinburgh is a university located in the United Kingdom.
 	William Dickinson supported the Portland Whigs.
+	William Thornton Dickinson is another name for William Dickinson.
 	People who supported the Portland Whigs did not get a seat in the Parliament.
 
 	Target: William Dickinson did not get a seat in Parliament.
@@ -39,7 +41,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 		get seat in: Entity get seat in Entity, *-bool, (Entity, Entity) -> Bool.
 	All sorts by now: Entity
 	Concepts: William Dickinson, British politician, House of Commons, Westminster school, University of Edinburgh, university, United Kingdom, Portland Whigs, Parliament.
-		- William Dickinson, British politician, House of Commons, Westminster school, University of Edinburgh, university, United Kingdom, Portland Whigs, Parliament: Entity
+		- William Dickinson, British politician, House of Commons, Westminster school, University of Edinburgh, university, United Kingdom, Portland Whigs, William Thornton Dickinson, Parliament: Entity
 	Rest sorts: .
 	Supplemental predicates: .
 	Removed & merged predicates: .
@@ -53,7 +55,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	# I shall use these identifiers for placeholders: Entity: e*; Bool: b*.
 
 	# Define functions with usage comments.
-	e_a_is_e_b = Function('is-a', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is Entity b, usage: e_a_is_e_b(Entity, Entity).
+	e_a_is_a_e_b = Function('is-a', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is an Entity b, usage: e_a_is_a_e_b(Entity, Entity).
 	e_a_sit_in_e_b = Function('sit-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a sit in Entity b, usage: e_a_sit_in_e_b(Entity, Entity).
 	e_a_attend_e_b = Function('attend', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a attend Entity b, usage: e_a_attend_e_b(Entity, Entity).
 	e_a_locate_in_e_b = Function('locate-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a locate in Entity b, usage: e_a_locate_in_e_b(Entity, Entity).
@@ -69,18 +71,19 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	university = Const('university', Entity)
 	unitedkingdom = Const('United Kingdom', Entity)
 	portlandwhigs = Const('Portland Whigs', Entity)
+	williamthorntondickinson = Const('William Thornton Dickinson', Entity)
 	parliament = Const('Parliament', Entity)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definitions = [] # Simple case, no relational predicate, therefore no definition.
+		l.definitions = []
 		# Claims from text
 		l.claims = [
 			(
 				"William Dickinson was a British politician who sat in the House of Commons",
 				And(
-					e_a_is_e_b(williamdickinson, britishpolitician),
+					e_a_is_a_e_b(williamdickinson, britishpolitician),
 					e_a_sit_in_e_b(williamdickinson, houseofcommons)
 				)
 			),
@@ -94,7 +97,7 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 			(
 				"The University of Edinburgh is a university located in the United Kingdom.",
 				And(
-					e_a_is_e_b(universityofedinburgh, university),
+					e_a_is_a_e_b(universityofedinburgh, university),
 					e_a_locate_in_e_b(universityofedinburgh, unitedkingdom)
 				)
 			),
@@ -103,12 +106,16 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 				e_a_support_e_b(williamdickinson, portlandwhigs)
 			),
 			(
+				"William Thornton Dickinson is another name for William Dickinson.",
+				williamthorntondickinson == williamdickinson
+			),
+			(
 				"People who supported the Portland Whigs did not get a seat in the Parliament.",
 				ForAll([e1], Implies(e_a_support_e_b(e1, portlandwhigs), Not(e_a_get_seat_in_e_b(e1, parliament))))
 			),
 		]
 		# Common sense
-		l.common_knowledge = [] # Simple case, no common knowledge.
+		l.common_knowledge = []
 		# Target.
 		l.assertions = [(
 			"William Dickinson did not get a seat in Parliament.",
