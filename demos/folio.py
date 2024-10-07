@@ -9,41 +9,43 @@ from z3_utils import Logic
 # %% demo 1
 ## User:
 """Premises:
-William Dickinson was a British politician who sat in the House of Commons
-William Dickinson attended Westminster school for high school and then the University of Edinburgh.
-The University of Edinburgh is a university located in the United Kingdom.
-William Dickinson supported the Portland Whigs.
-William Thornton Dickinson is another name for William Dickinson.
-People who supported the Portland Whigs did not get a seat in the Parliament.
+Premises:
+All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees. 
+Some of the customers in James' family go to the cinema every week.
+Customers in James' family subscribe to AMC A-List or HBO service. 
+Customers in James' family who prefer TV series will not watch TV series in cinemas.
+All customers in James' family who subscribe to HBO services prefer TV series to movies. 
+Lily is a customer in James' family; she watches TV series in cinemas. 
+Li is another name for Lily.
 
-Conclusion: William Dickinson did not get a seat in Parliament.
-(Simple case does not need complex predicates and common knowledge apart from distinction and equivalence.)"""
+Conclusion: Lily goes to cinemas every week.
+(Simple case, treat all concepts as single sort Entity, do not need complex predicates and common knowledge apart from distinction and equivalence.)"""
 ## Assistant:
-def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
+def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	"""
 	Claims:
-	William Dickinson was a British politician who sat in the House of Commons
-	William Dickinson attended Westminster school for high school and then the University of Edinburgh.
-	The University of Edinburgh is a university located in the United Kingdom.
-	William Dickinson supported the Portland Whigs.
-	William Thornton Dickinson is another name for William Dickinson.
-	People who supported the Portland Whigs did not get a seat in the Parliament.
+	All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees.
+	Some of the customers in James' family go to the cinema every week.
+	Customers in James' family subscribe to AMC A-List or HBO service.
+	Customers in James' family who prefer TV series will not watch TV series in cinemas.
+	All customers in James' family who subscribe to HBO services prefer TV series to movies.
+	Lily is in James' family; she watches TV series in cinemas.
+	Li is another name for Lily.
 
-	Target: William Dickinson did not get a seat in Parliament.
-	Predicates: be politician, sit in, attend school, attend university, be located in, support, get seat in.
+	Target: Lily goes to cinemas every week.
+	Predicates: subscribe, eligible to watch, go to, prefer, watch in.
 	Parameters of predicates:
-		is British: Entity is British, *-bool, (Entity) -> Bool.
+		is customer: Entity is Customer, *-bool, (Entity) -> Bool.
 			- Entity
-		is politician: Entity is politician, *-bool, (Entity) -> Bool.
-		sit in: Entity sit in Entity, *-bool, (Entity, Entity) -> Bool.
-		attend: Entity attend Entity, *-bool, (Entity, Entity) -> Bool.
-		is high school: Entity is high school, *-bool, (Entity) -> Bool.
-		is university: Entity is university, *-bool, (Entity) -> Bool.
-		locate in: Entity locate in Entity, *-bool, (Entity, Entity) -> Bool.
-		support: Entity support Entity, *-bool, (Entity, Entity) -> Bool.
+		is in: Entity is in Entity, *-bool, (Entity, Entity) -> Bool.
+		subscribe: Entity subscribe to Entity, *-bool, (Entity, Entity) -> Bool.
+		eligible to watch three movies every week without any additional fees: Entity eligible to watch three movies every week without any additional fees, *-bool, (Entity) -> Bool.
+		go to every week: Entity go to Entity every week, *-bool, (Entity, Entity) -> Bool.
+		prefer: Entity prefer Entity, *-bool, (Entity, Entity) -> Bool.
+		watch in: Entity watch Entity in Entity, *-bool, (Entity, Entity, Entity) -> Bool.
 	All sorts by now: Entity
-	Concepts: William Dickinson, House of Commons, Westminster school, University of Edinburgh, United Kingdom, Portland Whigs, William Thornton Dickinson, Parliament.
-		- William Dickinson, House of Commons, Westminster school, University of Edinburgh, United Kingdom, Portland Whigs, William Thornton Dickinson, Parliament: Entity
+	Concepts: James' family, AMC A-List, cinema, HBO service, TV series, movie, Lily, Li.
+		- James' family, AMC A-List, cinema, HBO service, TV series, movie, Lily, Li: Entity
 	Rest sorts: .
 	Supplemental predicates: .
 	Removed & merged predicates: .
@@ -57,24 +59,23 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 	# I shall use these identifiers for placeholders: Entity: e*; Bool: b*.
 
 	# Define functions with usage comments.
-	e_is_british = Function('is-british', Entity, BoolSort()) # (Entity) -> Bool, Entity is British, usage: e_is_british(Entity).
-	e_is_politician = Function('is-politician', Entity, BoolSort()) # (Entity) -> Bool, Entity is politician, usage: e_is_politician(Entity).
-	e_a_sit_in_e_b = Function('sit-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a sit in Entity b, usage: e_a_sit_in_e_b(Entity, Entity).
-	e_a_attend_e_b = Function('attend', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a attend Entity b, usage: e_a_attend_e_b(Entity, Entity).
-	e_is_high_school = Function('is-high-school', Entity, BoolSort()) # (Entity) -> Bool, Entity is high school, usage: e_is_high_school(Entity).
-	e_is_university = Function('is-university', Entity, BoolSort()) # (Entity) -> Bool, Entity is university, usage: e_is_university(Entity).
-	e_a_locate_in_e_b = Function('locate-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a locate in Entity b, usage: e_a_locate_in_e_b(Entity, Entity).
-	e_a_support_e_b = Function('support', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a support Entity b, usage: e_a_support_e_b(Entity, Entity).
+	e_is_customer = Function('is-customer', Entity, BoolSort()) # (Entity) -> Bool, Entity is Customer, usage: e_is_customer(Entity).
+	e_a_is_in_e_b = Function('is-in', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is in Entity b, usage: e_a_is_in_e_b(Entity, Entity).
+	e_a_subscribe_to_e_b = Function('subscribe', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a subscribe to Entity b, usage: e_a_subscribe_to_e_b(Entity, Entity).
+	e_eligible_watch3movies_everyweek_free = Function('eligible-to-watch', Entity, BoolSort()) # (Entity) -> Bool, Entity eligible to watch Int movies every week, usage: e_eligible_watch3movies_everyweek_free(Entity).
+	e_a_go_to_e_b_every_week = Function('go-to-every-week', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a go to Entity b every week, usage: e_a_go_to_e_b_every_week(Entity, Entity).
+	e_a_prefer_e_b = Function('prefer', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a prefer Entity b, usage: e_a_prefer_e_b(Entity, Entity).
+	e_a_watch_e_b_in_e_c = Function('watch-in', Entity, Entity, Entity, BoolSort()) # (Entity, Entity, Entity) -> Bool, Entity watch Entity in Entity, usage: e_a_watch_e_b_in_e_c(Entity, Entity, Entity).
 
 	# Arrange instances.
-	williamdickinson = Const('William Dickinson', Entity)
-	houseofcommons = Const('House of Commons', Entity)
-	westminsterschool = Const('Westminster school', Entity)
-	universityofedinburgh = Const('University of Edinburgh', Entity)
-	unitedkingdom = Const('United Kingdom', Entity)
-	portlandwhigs = Const('Portland Whigs', Entity)
-	williamthorntondickinson = Const('William Thornton Dickinson', Entity)
-	parliament = Const('Parliament', Entity)
+	jamesfamily = Const("James' family", Entity)
+	amcalist = Const('AMC A-List', Entity)
+	cinema = Const('cinema', Entity)
+	hboservice = Const('HBO service', Entity)
+	tvseries = Const('TV series', Entity)
+	movie = Const('movie', Entity)
+	lily = Const('Lily', Entity)
+	li = Const('Li', Entity)
 
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
@@ -83,48 +84,54 @@ def william_dickinson_did_not_get_seat_in_parliament(**kwargs) -> Logic:
 		# Claims from text
 		l.claims = [
 			(
-				"William Dickinson was a British politician who sat in the House of Commons",
+				"All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees.",
+				ForAll([e1], Implies(
+					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_subscribe_to_e_b(e1, amcalist)),
+					e_eligible_watch3movies_everyweek_free(e1)
+				))
+			),
+			(
+				"Some of the customers in James' family go to the cinema every week.",
+				Exists([e1], And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_go_to_e_b_every_week(e1, cinema)))
+			),
+			(
+				"Customers in James' family subscribe to AMC A-List or HBO service.",
+				ForAll([e1], Implies(
+					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily)),
+					Or(e_a_subscribe_to_e_b(e1, amcalist), e_a_subscribe_to_e_b(e1, hboservice))
+				))
+			),
+			(
+				"Customers in James' family who prefer TV series will not watch TV series in cinemas.",
+				ForAll([e1], Implies(
+					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_prefer_e_b(e1, tvseries)),
+					Not(e_a_watch_e_b_in_e_c(e1, tvseries, cinema))
+				))
+			),
+			(
+				"All customers in James' family who subscribe to HBO services prefer TV series to movies.",
+				ForAll([e1], Implies(
+					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_subscribe_to_e_b(e1, hboservice)),
+					And(e_a_prefer_e_b(e1, tvseries), Not(e_a_prefer_e_b(e1, movie)))
+				))
+			),
+			(
+				"Lily is a customer in James' family; she watches TV series in cinemas.",
 				And(
-					e_is_british(williamdickinson),
-					e_is_politician(williamdickinson),
-					e_a_sit_in_e_b(williamdickinson, houseofcommons)
+					e_is_customer(lily), e_a_is_in_e_b(lily, jamesfamily),
+					e_a_watch_e_b_in_e_c(lily, tvseries, cinema)
 				)
 			),
 			(
-				"William Dickinson attended Westminster school for high school and then the University of Edinburgh.",
-				And(
-					e_a_attend_e_b(williamdickinson, westminsterschool),
-					e_is_high_school(westminsterschool),
-					e_a_attend_e_b(williamdickinson, universityofedinburgh)
-				)
-			),
-			(
-				"The University of Edinburgh is a university located in the United Kingdom.",
-				And(
-					e_is_university(universityofedinburgh),
-					e_a_locate_in_e_b(universityofedinburgh, unitedkingdom)
-				)
-			),
-			(
-				"William Dickinson supported the Portland Whigs.",
-				e_a_support_e_b(williamdickinson, portlandwhigs)
-			),
-			(
-				"William Thornton Dickinson is another name for William Dickinson.",
-				williamthorntondickinson == williamdickinson
-			),
-			(
-				"People who supported the Portland Whigs did not get a seat in the Parliament.",
-				ForAll([e1], Implies(e_a_support_e_b(e1, portlandwhigs), Not(e_a_sit_in_e_b(e1, parliament))))
-			),
+				"Li is another name for Lily.",
+				# Always use `==` when seeing 'is another name for'.
+				li == lily
+			)
 		]
 		# Common sense
 		l.common_knowledge = []
 		# Target.
-		l.assertions = [(
-			"William Dickinson did not get a seat in Parliament.",
-			Not(e_a_sit_in_e_b(williamdickinson, parliament))
-		)]
+		l.assertions = [("Lily goes to cinemas every week.", e_a_go_to_e_b_every_week(lily, cinema))]
 
 	# All placeholders used: e1: Entity
 	e1, = Consts('e1', Entity)
