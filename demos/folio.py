@@ -9,12 +9,14 @@ from z3_utils import Logic
 # %% demo 1
 ## User:
 """Premises:
-Premises:
 All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees. 
 Some of the customers in James' family go to the cinema every week.
-Customers in James' family subscribe to AMC A-List or HBO service. 
+Customers in James' family subscribe to either AMC A-List or HBO service. 
+Some of the customers in James' family are familiar with HBO service.
+Some of the customers in James' family are unfamiliar with AMC A-List.
 Customers in James' family who prefer TV series will not watch TV series in cinemas.
 All customers in James' family who subscribe to HBO services prefer TV series to movies. 
+No one who goes to the cinema every week does not prefer movies.
 Lily is a customer in James' family; she watches TV series in cinemas. 
 Li is another name for Lily.
 
@@ -26,14 +28,17 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	Claims:
 	All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees.
 	Some of the customers in James' family go to the cinema every week.
-	Customers in James' family subscribe to AMC A-List or HBO service.
+	Customers in James' family subscribe to either AMC A-List or HBO service.
+	Some of the customers in James' family are familiar with HBO service.
+	Some of the customers in James' family are unfamiliar with AMC A-List.
 	Customers in James' family who prefer TV series will not watch TV series in cinemas.
 	All customers in James' family who subscribe to HBO services prefer TV series to movies.
-	Lily is in James' family; she watches TV series in cinemas.
+	No one who goes to the cinema every week does not prefer movies.
+	Lily is a customer in James' family; she watches TV series in cinemas.
 	Li is another name for Lily.
 
 	Target: Lily goes to cinemas every week.
-	Predicates: subscribe, eligible to watch, go to, prefer, watch in.
+	Predicates: is customer, is in, subscribe, eligible to watch three movies every week without any additional fees, go to every week, is familiar with, prefer, watch in.
 	Parameters of predicates:
 		is customer: Entity is Customer, *-bool, (Entity) -> Bool.
 			- Entity
@@ -41,6 +46,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 		subscribe: Entity subscribe to Entity, *-bool, (Entity, Entity) -> Bool.
 		eligible to watch three movies every week without any additional fees: Entity eligible to watch three movies every week without any additional fees, *-bool, (Entity) -> Bool.
 		go to every week: Entity go to Entity every week, *-bool, (Entity, Entity) -> Bool.
+		is familiar with: Entity is familiar with Entity, *-bool, (Entity, Entity) -> Bool.
 		prefer: Entity prefer Entity, *-bool, (Entity, Entity) -> Bool.
 		watch in: Entity watch Entity in Entity, *-bool, (Entity, Entity, Entity) -> Bool.
 	All sorts by now: Entity
@@ -64,6 +70,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	e_a_subscribe_to_e_b = Function('subscribe', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a subscribe to Entity b, usage: e_a_subscribe_to_e_b(Entity, Entity).
 	e_eligible_watch3movies_everyweek_free = Function('eligible-to-watch', Entity, BoolSort()) # (Entity) -> Bool, Entity eligible to watch Int movies every week, usage: e_eligible_watch3movies_everyweek_free(Entity).
 	e_a_go_to_e_b_every_week = Function('go-to-every-week', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a go to Entity b every week, usage: e_a_go_to_e_b_every_week(Entity, Entity).
+	e_a_is_familiar_with_e_b = Function('is-familiar-with', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is familiar with Entity b, usage: e_a_is_familiar_with_e_b(Entity, Entity).
 	e_a_prefer_e_b = Function('prefer', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a prefer Entity b, usage: e_a_prefer_e_b(Entity, Entity).
 	e_a_watch_e_b_in_e_c = Function('watch-in', Entity, Entity, Entity, BoolSort()) # (Entity, Entity, Entity) -> Bool, Entity watch Entity in Entity, usage: e_a_watch_e_b_in_e_c(Entity, Entity, Entity).
 
@@ -95,10 +102,25 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 				Exists([e1], And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_go_to_e_b_every_week(e1, cinema)))
 			),
 			(
-				"Customers in James' family subscribe to AMC A-List or HBO service.",
+				"Customers in James' family subscribe to either AMC A-List or HBO service.",
+				# Always use Xor for 'either or'.
 				ForAll([e1], Implies(
 					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily)),
-					Or(e_a_subscribe_to_e_b(e1, amcalist), e_a_subscribe_to_e_b(e1, hboservice))
+					Xor(e_a_subscribe_to_e_b(e1, amcalist), e_a_subscribe_to_e_b(e1, hboservice))
+				))
+			),
+			(
+				"Some of the customers in James' family are familiar with HBO service.",
+				Exists([e1], And(
+					e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily),
+					e_a_is_familiar_with_e_b(e1, hboservice)
+				))
+			),
+			(
+				"Some of the customers in James' family are unfamiliar with AMC A-List.",
+				Exists([e1], And(
+					e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily),
+					Not(e_a_is_familiar_with_e_b(e1, amcalist))
 				))
 			),
 			(
@@ -113,6 +135,12 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 				ForAll([e1], Implies(
 					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_subscribe_to_e_b(e1, hboservice)),
 					And(e_a_prefer_e_b(e1, tvseries), Not(e_a_prefer_e_b(e1, movie)))
+				))
+			),
+			(
+				"No one who goes to the cinema every week does not prefer movies.",
+				Not(Exists([e1],
+			   		And(e_a_go_to_e_b_every_week(e1, cinema), Not(e_a_prefer_e_b(e1, movie)))
 				))
 			),
 			(
