@@ -20,8 +20,8 @@ No one who goes to the cinema every week does not prefer movies.
 Lily is a customer in James' family; she watches TV series in cinemas. 
 Li is another name for Lily.
 
-Conclusion: Lily goes to cinemas every week.
-(Simple case, treat all concepts as single sort Entity. Treat either-or as `Xor`.)"""
+Conclusion: Lily either goes to cinemas every week, or prefers TV series to movies.
+(Simple case, treat all concepts as single sort Entity.)"""
 ## Assistant:
 def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	"""
@@ -37,7 +37,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	Lily is a customer in James' family; she watches TV series in cinemas.
 	Li is another name for Lily.
 
-	Target: Lily goes to cinemas every week.
+	Target: Lily either goes to cinemas every week, or prefers TV series to movies.
 	Predicates: is customer, is in, subscribe, eligible to watch three movies every week without any additional fees, go to every week, is familiar with, is unfamiliar with, prefer, watch in.
 	Parameters of predicates:
 		is customer: Entity is Customer, *-bool, (Entity) -> Bool.
@@ -162,7 +162,13 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 		# Common sense
 		l.common_knowledge = []
 		# Target.
-		l.assertions = [("Lily goes to cinemas every week.", e_a_go_to_e_b_every_week(lily, cinema))]
+		l.assertions = [
+			(
+				"Lily either goes to cinemas every week, or prefer TV series to movies.",
+				# Always use `Xor` when seeing 'either or'.
+				Xor(e_a_go_to_e_b_every_week(lily, cinema), e_a_prefer_e_b(lily, tvseries))
+			)
+		]
 
 	# All placeholders used: e1: Entity
 	e1, = Consts('e1', Entity)
