@@ -10,11 +10,11 @@ from z3_utils import Logic
 ## User:
 """Premises:
 All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees. 
-Some of the customers in James' family go to the cinema every week.
 Customers in James' family subscribe to either AMC A-List or HBO service. 
 Some of the customers in James' family are familiar with HBO service.
 Some of the customers in James' family are unfamiliar with AMC A-List.
 Customers in James' family who prefer TV series will not watch TV series in cinemas.
+All customers in James' family go to the cinema every week, or subscribe to HBO service, or prefer TV series.
 All customers in James' family who subscribe to HBO services prefer TV series to movies. 
 No one who goes to the cinema every week does not prefer movies.
 Lily is a customer in James' family; she watches TV series in cinemas. 
@@ -27,11 +27,11 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	"""
 	Claims:
 	All customers in James' family who subscribe to AMC A-List are eligible to watch three movies every week without any additional fees.
-	Some of the customers in James' family go to the cinema every week.
 	Customers in James' family subscribe to either AMC A-List or HBO service.
 	Some of the customers in James' family are familiar with HBO service.
 	Some of the customers in James' family are unfamiliar with AMC A-List.
 	Customers in James' family who prefer TV series will not watch TV series in cinemas.
+	All customers in James' family go to the cinema every week, or subscribe to HBO service, or prefer TV series.
 	All customers in James' family who subscribe to HBO services prefer TV series to movies.
 	No one who goes to the cinema every week does not prefer movies.
 	Lily is a customer in James' family; she watches TV series in cinemas.
@@ -101,10 +101,6 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 				))
 			),
 			(
-				"Some of the customers in James' family go to the cinema every week.",
-				Exists([e1], And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_go_to_e_b_every_week(e1, cinema)))
-			),
-			(
 				"Customers in James' family subscribe to either AMC A-List or HBO service.",
 				# Always use `Xor` when seeing 'either or'.
 				ForAll([e1], Implies(
@@ -131,6 +127,14 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 				ForAll([e1], Implies(
 					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily), e_a_prefer_e_b(e1, tvseries)),
 					Not(e_a_watch_e_b_in_e_c(e1, tvseries, cinema))
+				))
+			),
+			(
+				"All customers in James' family go to the cinema every week, or subscribe to HBO service, or prefer TV series.",
+				# Regular 'or' without 'either'.
+				ForAll([e1], Implies(
+					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily)),
+					Or(e_a_go_to_e_b_every_week(e1, cinema), e_a_subscribe_to_e_b(e1, hboservice), e_a_prefer_e_b(e1, tvseries))
 				))
 			),
 			(
