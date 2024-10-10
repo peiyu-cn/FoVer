@@ -21,7 +21,7 @@ Lily is a customer in James' family; she watches TV series in cinemas.
 Li is another name for Lily.
 
 Conclusion: Lily goes to cinemas every week.
-(Simple case, treat all concepts as single sort Entity, do not need complex predicates and common knowledge apart from distinction and equivalence.)"""
+(Simple case, treat all concepts as single sort Entity. Treat either-or as `Xor`.)"""
 ## Assistant:
 def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	"""
@@ -55,7 +55,9 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 		- James' family, AMC A-List, cinema, HBO service, TV series, movie, Lily, Li: Entity
 	Rest sorts: .
 	Supplemental predicates: .
-	Removed & merged predicates: .
+	Removed & merged predicates:
+		- is unfamiliar with: [Entity e1] is unfamiliar with [Entity e2] ==
+			Not([Entity e1] is familiar with [Entity e2])
 	All sorts: Entity; Bool.
 	"""
 	# Initialize an instance of Logic with given arguments.
@@ -72,7 +74,6 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	e_eligible_watch3movies_everyweek_free = Function('eligible-to-watch', Entity, BoolSort()) # (Entity) -> Bool, Entity eligible to watch Int movies every week, usage: e_eligible_watch3movies_everyweek_free(Entity).
 	e_a_go_to_e_b_every_week = Function('go-to-every-week', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a go to Entity b every week, usage: e_a_go_to_e_b_every_week(Entity, Entity).
 	e_a_is_familiar_with_e_b = Function('is-familiar-with', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is familiar with Entity b, usage: e_a_is_familiar_with_e_b(Entity, Entity).
-	e_a_is_unfamiliar_with_e_b = Function('is-unfamiliar-with', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a is unfamiliar with Entity b, usage: e_a_is_unfamiliar_with_e_b(Entity, Entity).
 	e_a_prefer_e_b = Function('prefer', Entity, Entity, BoolSort()) # (Entity, Entity) -> Bool, Entity a prefer Entity b, usage: e_a_prefer_e_b(Entity, Entity).
 	e_a_watch_e_b_in_e_c = Function('watch-in', Entity, Entity, Entity, BoolSort()) # (Entity, Entity, Entity) -> Bool, Entity watch Entity in Entity, usage: e_a_watch_e_b_in_e_c(Entity, Entity, Entity).
 
@@ -89,12 +90,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 	# I'm not sure what quantifiers will be used, so I shall define them later.
 	def _store():
 		# Relation Definitions
-		l.definitions = [
-			(
-				"'is unfamiliar with' is the negation of 'is familiar with'.",
-				ForAll([e1, e2], e_a_is_unfamiliar_with_e_b(e1, e2) == Not(e_a_is_familiar_with_e_b(e1, e2)))
-			)
-		]
+		l.definitions = []
 		# Claims from text
 		l.claims = [
 			(
@@ -110,7 +106,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 			),
 			(
 				"Customers in James' family subscribe to either AMC A-List or HBO service.",
-				# Always use Xor for 'either or'.
+				# Always use `Xor` when seeing 'either or'.
 				ForAll([e1], Implies(
 					And(e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily)),
 					Xor(e_a_subscribe_to_e_b(e1, amcalist), e_a_subscribe_to_e_b(e1, hboservice))
@@ -127,7 +123,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 				"Some of the customers in James' family are unfamiliar with AMC A-List.",
 				Exists([e1], And(
 					e_is_customer(e1), e_a_is_in_e_b(e1, jamesfamily),
-					e_a_is_unfamiliar_with_e_b(e1, amcalist)
+					Not(e_a_is_familiar_with_e_b(e1, amcalist))
 				))
 			),
 			(
@@ -169,7 +165,7 @@ def lily_goes_to_cinemas_every_week(**kwargs) -> Logic:
 		l.assertions = [("Lily goes to cinemas every week.", e_a_go_to_e_b_every_week(lily, cinema))]
 
 	# All placeholders used: e1: Entity
-	e1, e2 = Consts('e1 e2', Entity)
+	e1, = Consts('e1', Entity)
 
 	_store()
 

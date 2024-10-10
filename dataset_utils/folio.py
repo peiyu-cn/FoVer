@@ -44,7 +44,7 @@ def parse_record(record: str) -> Entry:
 
 def generate_prompt(entry: Entry):
 	return 'Premises:\n' + entry['premises'] + '\n\nConclusion: ' + entry['conclusion'] \
-		+ '\n(Simple case, treat all concepts as single sort Entity, do not need complex predicates and common knowledge apart from distinction and equivalence.)'
+		+ '\n(Simple case, treat all concepts as single sort Entity. Treat either-or as `Xor`.)'
 
 def generate_prompts(
 	data_path='data/FOLIO/folio_v2_train.jsonl',
