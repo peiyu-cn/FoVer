@@ -1,7 +1,9 @@
-from typing import Any, Coroutine, Optional
+from typing import Any, Coroutine, Iterable, Literal, Sequence, Optional, Unpack
 
 import anthropic
 import asyncio
+import json
+from logging import Logger, getLogger
 from tqdm.auto import tqdm
 
 from file_utils import set_file_read_only
@@ -9,11 +11,20 @@ from .prompting import get_demos
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-	from typing import Sequence, Iterable
+	from typing import NotRequired
 
+	from anthropic.types.beta.beta_message_param import BetaMessageParam
+	from anthropic.types.beta.beta_text_block_param import BetaTextBlockParam
+	from anthropic.types.beta.messages.batch_create_params import Request
+	from anthropic.types.beta.messages.beta_message_batch_individual_response import BetaMessageBatchIndividualResponse
+	from anthropic.types.beta.message_create_params import MessageCreateParamsNonStreaming
 	from anthropic.types.beta.prompt_caching import PromptCachingBetaMessage, PromptCachingBetaMessageParam, PromptCachingBetaTextBlockParam
 
 	from .prompting import Message
+
+	class MessageCreateParameters(MessageCreateParamsNonStreaming):
+		messages: NotRequired[Iterable[BetaMessageParam]] # type: ignore
+		max_tokens: NotRequired[int] # type: ignore
 
 def _get_anthropic_messages(
 	demos: "Sequence[Sequence[Message]]",
@@ -48,23 +59,44 @@ def _get_anthropic_messages(
 		}
 	]
 
-async def batch_request_async(
-	user_prompts: "Sequence[str]",
-	model: str,
-	output_file: str,
-	demos_path = 'demos/common.py',
-	additional_path: Optional[str] = None,
-	max_tokens: int = 2048,
-	temperature: float = 0,
-	top_p: float = 1,
-	prefill: Optional[str] = None,
-	max_concurrency: int = 2,
-	**kwargs,
+def _get_anthropic_client(
+	use_cache=True,
+	max_retries=3,
 ):
-	from private.apikey import anthropic_key, anthropic_base_url
+	from private.apikey import anthropic_key, anthropic_base_url, anthropic_base_url_nocache
+	base_url = anthropic_base_url if use_cache else anthropic_base_url_nocache
+	return anthropic.Anthropic(
+		api_key=anthropic_key.get_secret_value(),
+		base_url=base_url,
+		max_retries=max_retries,
+	)
 
-	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
-	msgs = _get_anthropic_messages(messages)
+def get_requests(
+	job_prefix: str,
+	params: "list[MessageCreateParamsNonStreaming]",
+	custom_ids: Optional[Sequence[str]] = None,
+	base_id = 0,
+) -> "list[Request]":
+	if custom_ids:
+		assert len(custom_ids) == len(params)
+		prefixes = [
+			f"{job_prefix}-{i + base_id :04}({custom_id})"
+			for i, custom_id in enumerate(custom_ids)
+		]
+	else:
+		prefixes = [f"{job_prefix}-{i + base_id :04}" for i in range(len(params))]
+	return [
+		{
+			"custom_id": prefixes[i],
+			"params": params[i],
+		} for i in range(len(params))
+	]
+
+def get_prompts(
+	user_prompts: "Sequence[str]",
+	msgs: "Sequence[PromptCachingBetaMessageParam]",
+	prefill: Optional[str] = None,
+):
 	prompts: "list[list[PromptCachingBetaMessageParam]]" = []
 	for user in user_prompts:
 		prompt: "list[PromptCachingBetaMessageParam]" = [
@@ -81,11 +113,107 @@ async def batch_request_async(
 			})
 		prompts.append(prompt)
 
-	client = anthropic.AsyncAnthropic(
-		api_key=anthropic_key.get_secret_value(),
-		base_url=anthropic_base_url,
-		max_retries=3,
+	return prompts
+
+def generate_batch(
+	user_prompts: "Sequence[str]",
+	base_id: int,
+	size: int,
+	job_prefix: str,
+	model: Literal['claude-3-5-sonnet-20240620'],
+	demos_path = 'demos/common.py',
+	additional_path: Optional[str] = None,
+	custom_ids: Optional[Sequence[str]] = None,
+	prefill: Optional[str] = None,
+	max_tokens: int = 2048,
+	temperature: float = 0,
+	top_p: float = 1,
+	**kwargs: "Unpack[MessageCreateParameters]", # type: ignore
+):
+	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
+	msgs = _get_anthropic_messages(messages)
+	prompts: "list[list[BetaMessageParam]]" = get_prompts(user_prompts, msgs, prefill) # type: ignore
+
+	top = base_id + min(size, len(prompts) - base_id)
+	requests = get_requests(
+		job_prefix = job_prefix,
+		custom_ids = custom_ids[base_id:top] if custom_ids else None,
+		base_id = base_id,
+		params = [
+			{
+				"model": model,
+				"system": system,
+				"messages": prompt,
+				"max_tokens": max_tokens,
+				"temperature": temperature,
+				"top_p": top_p,
+				**kwargs,
+			}
+			for prompt in prompts[base_id:top]
+		],
 	)
+
+	outfile = f'data/anthropic_batch_request/{job_prefix}-{base_id:04}-{top:04}.jsonl'
+	with open(outfile, 'w', encoding='utf-8') as file:
+		for request in requests[base_id:top]:
+			print(json.dumps(request), file=file)
+
+	set_file_read_only(outfile)
+	return requests
+
+def submit_batch(
+	requests: "list[Request]",
+):
+	client = _get_anthropic_client(use_cache=False)
+
+	return client.beta.messages.batches.create(
+		requests=requests,
+		betas=['prompt-caching-2024-07-31'],
+	)
+
+def list_batch():
+	client = _get_anthropic_client(use_cache=False)
+	return client.beta.messages.batches.list()
+
+def check_batch(
+	batch_id: str,
+):
+	client = _get_anthropic_client(use_cache=False)
+	r = client.beta.messages.batches.retrieve(batch_id)
+	return r.processing_status
+
+def save_batch_results(
+	batch_id: str,
+	output_file: str,
+):
+	client = _get_anthropic_client(use_cache=False)
+	r = client.beta.messages.batches.retrieve(batch_id)
+	assert r.processing_status == 'ended', f'Status: {r.processing_status}'
+	_results = client.beta.messages.batches.results(batch_id)
+	results = list(_results)
+	results.sort(key = lambda r: r.custom_id)
+	with open(output_file, 'w', encoding='utf-8') as file:
+		for result in results:
+			print(result.to_json(indent=None), file=file)
+
+async def batch_request_async(
+	user_prompts: "Sequence[str]",
+	model: str,
+	output_file: str,
+	demos_path = 'demos/common.py',
+	additional_path: Optional[str] = None,
+	max_tokens: int = 2048,
+	temperature: float = 0,
+	top_p: float = 1,
+	prefill: Optional[str] = None,
+	max_concurrency: int = 2,
+	**kwargs,
+):
+	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
+	msgs = _get_anthropic_messages(messages)
+	prompts: "list[list[PromptCachingBetaMessageParam]]" = get_prompts(user_prompts, msgs, prefill) # type: ignore
+
+	client = _get_anthropic_client()
 
 	coros: "list[Coroutine[Any, Any, PromptCachingBetaMessage]]" = [
 		client.beta.prompt_caching.messages.create(
