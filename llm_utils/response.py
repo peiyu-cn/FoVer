@@ -1,4 +1,4 @@
-from typing import Callable, Literal
+from typing import Callable, Literal, Union
 
 import asyncio
 from logging import Logger, getLogger
@@ -57,11 +57,13 @@ async def check_responses_async(
 		sync=sync,
 	)
 
+	results = [] # type: list[Union[tuple[Literal[True], list[bool | CheckSatResult]], tuple[Literal[False], Exception]]]
 	i = -1
 	for task in tasks:
 		i += 1
 		logger.info('Checking response #%d...', i)
 		result = await task
+		results.append(result)
 		if result[0] == True or result[0] == False and isinstance(result[1], TimeoutError):
 			if isinstance(result[1], TimeoutError):
 				# Execution timed out. It should be a Z3 failure, however, it is very possible that the result is False.
@@ -80,5 +82,10 @@ async def check_responses_async(
 			llm_failed += 1
 			total += 1
 			logger.error('Failed to execute #%d: %s', i, result[1])
+
+	print([
+		r[1][0] if r[0] == True else None
+		for r in results
+	])
 
 	return correct, wrong, llm_failed, z3_failed, total
