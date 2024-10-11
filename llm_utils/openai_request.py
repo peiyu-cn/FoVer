@@ -4,6 +4,7 @@ from typing import TypeVar
 import json
 from openai import OpenAI
 
+from file_utils import set_file_read_only
 from .prompting import get_demos, get_messages
 
 from typing import TYPE_CHECKING
@@ -139,6 +140,7 @@ def generate_batch(
 		for request in requests:
 			print(json.dumps(request), file=file)
 
+	set_file_read_only(outfile)
 	return outfile
 
 def submit_batch(

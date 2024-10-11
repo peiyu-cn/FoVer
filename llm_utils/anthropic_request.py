@@ -4,6 +4,7 @@ import anthropic
 import asyncio
 from tqdm.auto import tqdm
 
+from file_utils import set_file_read_only
 from .prompting import get_demos
 
 from typing import TYPE_CHECKING
@@ -113,4 +114,5 @@ async def batch_request_async(
 				results.append(result)
 				print(result.to_json(indent=None), file=file)
 
+	set_file_read_only(output_file)
 	return results
