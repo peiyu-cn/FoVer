@@ -24,6 +24,9 @@ def _get_anthropic_messages(
 		for message in message_pair:
 			messages.append(message)
 
+	if len(messages) == 0:
+		return []
+
 	last = messages[-1]
 
 	assert last["role"] == 'assistant'
@@ -49,6 +52,7 @@ async def batch_request_async(
 	user_prompts: "Sequence[str]",
 	model: str,
 	output_file: str,
+	demos_path = 'demos/common.py',
 	additional_path: Optional[str] = None,
 	max_tokens: int = 2048,
 	temperature: float = 0,
@@ -59,7 +63,7 @@ async def batch_request_async(
 ):
 	from private.apikey import anthropic_key, anthropic_base_url
 
-	system, messages = get_demos(additional_path=additional_path)
+	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
 	msgs = _get_anthropic_messages(messages)
 	prompts: "list[list[PromptCachingBetaMessageParam]]" = []
 	for user in user_prompts:
@@ -88,7 +92,13 @@ async def batch_request_async(
 			max_tokens=max_tokens,
 			messages=message,
 			model=model,
-			system=system,
+			system=[{
+				"type": 'text',
+				"text": system,
+				"cache_control": {
+					"type": 'ephemeral'
+				},
+			}],
 			temperature=temperature,
 			top_p=top_p,
 			**kwargs

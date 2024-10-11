@@ -12,7 +12,7 @@ def get_assistant_content(result: str):
 	message: dict[str, str] = choices[0]['message']
 	assert message['role'] == 'assistant'
 	content = message['content']
-	return process_response(content)
+	return content
 
 def check_batch_response(
 	response_file_path: str,
@@ -23,7 +23,7 @@ def check_batch_response(
 ):
 	with open(response_file_path, 'r', encoding='utf-8') as file:
 		responses = [
-			get_assistant_content(line)
+			process_response(get_assistant_content(line))
 			for line in file
 		]
 	return check_responses(responses, check_cb, use_definitions, use_common_knowledge, sync)
