@@ -58,10 +58,10 @@ def _result_equal(
 ) -> "bool | CheckSatResult":
 	from z3 import sat, unknown
 
-	if answer == True:
-		return judge_result == True
-	elif judge_result == unknown:
+	if judge_result == unknown:
 		return unknown
+	elif answer == True:
+		return judge_result == True
 	else:
 		return judge_result == False or judge_result == sat
 
@@ -83,7 +83,7 @@ def check_result(
 			return 1, 0, 0, 1
 		logger.warning('Failed: %s: %s', data['answer_id'], data['answer_is_logically_correct'])
 		return 0, 0, 1, 1 # correct, wrong, failed, total
-	elif is_equal:
+	elif is_equal == True:
 		return 1, 0, 0, 1
 	else:
 		logger.warning('WA: %s: %s - %s', data['answer_id'], result, data['answer_is_logically_correct'])
