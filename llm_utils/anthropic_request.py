@@ -1,4 +1,4 @@
-from typing import Any, Coroutine, Iterable, Literal, Sequence, Optional, Unpack
+from typing import Any, Coroutine, Iterable, Literal, Sequence, Optional, Unpack, overload
 
 import anthropic
 import asyncio
@@ -59,13 +59,32 @@ def _get_anthropic_messages(
 		}
 	]
 
+@overload
+def _get_anthropic_client(
+	use_cache: bool = True,
+	max_retries: int = 3,
+) -> anthropic.Anthropic:
+	...
+
+@overload
+def _get_anthropic_client(
+	use_cache: bool = True,
+	max_retries: int = 3,
+	*,
+	asynchronous: Literal[True],
+) -> anthropic.AsyncAnthropic:
+	...
+
 def _get_anthropic_client(
 	use_cache=True,
 	max_retries=3,
+	*,
+	asynchronous=False,
 ):
 	from private.apikey import anthropic_key, anthropic_base_url, anthropic_base_url_nocache
 	base_url = anthropic_base_url if use_cache else anthropic_base_url_nocache
-	return anthropic.Anthropic(
+	Ant = anthropic.Anthropic if not asynchronous else anthropic.AsyncAnthropic
+	return Ant(
 		api_key=anthropic_key.get_secret_value(),
 		base_url=base_url,
 		max_retries=max_retries,
@@ -221,7 +240,7 @@ async def batch_request_async(
 	msgs = _get_anthropic_messages(messages)
 	prompts: "list[list[PromptCachingBetaMessageParam]]" = get_prompts(user_prompts, msgs, prefill) # type: ignore
 
-	client = _get_anthropic_client()
+	client = _get_anthropic_client(asynchronous=True)
 
 	coros: "list[Coroutine[Any, Any, PromptCachingBetaMessage]]" = [
 		client.beta.prompt_caching.messages.create(

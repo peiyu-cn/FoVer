@@ -1,4 +1,4 @@
-from typing import Any, Callable, Literal, Optional, Sequence, TypedDict
+from typing import Any, Callable, Literal, Optional, Sequence, TypedDict, overload
 
 from logging import Logger, getLogger
 
@@ -34,9 +34,26 @@ def get_data(
 def generate_prompt(record: RevealRecord):
 	return 'Question: ' + record['question'] + '\nAnswer:\n' + record['full_answer']
 
+@overload
 def generate_prompts(
 	data_path = 'data/reveal/eval/reveal_eval.csv',
 	filter: Optional[Callable[[RevealRecord], bool]] = None,
+) -> list[str]:
+	...
+
+@overload
+def generate_prompts(
+	data_path = 'data/reveal/eval/reveal_eval.csv',
+	filter: Optional[Callable[[RevealRecord], bool]] = None,
+	*,
+	return_ids: Literal[True],
+) -> tuple[list[str], list[str]]:
+	...
+
+def generate_prompts(
+	data_path = 'data/reveal/eval/reveal_eval.csv',
+	filter: Optional[Callable[[RevealRecord], bool]] = None,
+	*,
 	return_ids = False,
 ):
 	prompts: list[str] = []

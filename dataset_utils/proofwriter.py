@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, overload
 
 from logging import Logger, getLogger
 import json
@@ -57,9 +57,23 @@ def generate_prompt(entry: "Entry"):
 		for q in entry['questions']
 	])
 
+@overload
 def generate_prompts(
 	data_path: str,
-	return_ids: Literal[True, False] = False,
+	return_ids: Literal[False] = False,
+) -> list[str]:
+	...
+
+@overload
+def generate_prompts(
+	data_path: str,
+	return_ids: Literal[True],
+) -> tuple[list[str], list[str]]:
+	...
+
+def generate_prompts(
+	data_path: str,
+	return_ids: bool = False,
 ):
 	data = get_data(data_path)
 	
