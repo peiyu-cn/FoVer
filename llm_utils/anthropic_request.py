@@ -142,7 +142,15 @@ def generate_batch(
 		params = [
 			{
 				"model": model,
-				"system": system,
+				"system": [
+					{
+						"type": 'text',
+						"text": system,
+						"cache_control": {
+							"type": 'ephemeral'
+						},
+					}
+				],
 				"messages": prompt,
 				"max_tokens": max_tokens,
 				"temperature": temperature,

@@ -14,6 +14,21 @@ def get_assistant_content(result: str, prefill: Optional[str] = None):
 		text = prefill + text
 	return text
 
+def get_assistant_batch_content(
+	result: str,
+	prefill: Optional[str] = None,
+):
+	j = json.loads(result)
+	_result: dict = j['result']
+	assert len(_result) == 1
+	message: dict = _result['message']
+	content: list[dict] = message['content']
+	assert len(content) == 1
+	text: str = content[0]['text']
+	if prefill:
+		text = prefill + text
+	return text
+
 def check_batch_response(
 	response_file_path: str,
 	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
