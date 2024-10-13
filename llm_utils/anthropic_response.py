@@ -20,7 +20,6 @@ def get_assistant_batch_content(
 ):
 	j = json.loads(result)
 	_result: dict = j['result']
-	assert len(_result) == 1
 	message: dict = _result['message']
 	content: list[dict] = message['content']
 	assert len(content) == 1

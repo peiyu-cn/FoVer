@@ -1,0 +1,6 @@
+# %% [markdown] ProofWriter 0-shot (CoT) System Prompt
+# # ProofWriter 0-shot (CoT) System Prompt
+
+# %% System:
+"""Given a Theory and a Target, the task is to decide whether the Target is true, false, or unknown according to the Theory.
+You may think first, but must give one of [true, false, unknown] at last."""

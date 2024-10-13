@@ -57,10 +57,16 @@ def generate_prompt(entry: "Entry"):
 		for q in entry['questions']
 	])
 
+def generate_prompt_baseline(entry: "Entry"):
+	return 'Theory:\n' + entry['theory'] \
+		+ '\nTarget: ' + entry['questions'][0]['question']
+
 @overload
 def generate_prompts(
 	data_path: str,
 	return_ids: Literal[False] = False,
+	*,
+	baseline: bool = False,
 ) -> list[str]:
 	...
 
@@ -68,19 +74,24 @@ def generate_prompts(
 def generate_prompts(
 	data_path: str,
 	return_ids: Literal[True],
+	*,
+	baseline: bool = False,
 ) -> tuple[list[str], list[str]]:
 	...
 
 def generate_prompts(
 	data_path: str,
 	return_ids: bool = False,
+	*,
+	baseline: bool = False,
 ):
 	data = get_data(data_path)
+	generate_func = generate_prompt_baseline if baseline == True else generate_prompt
 	
 	prompts: list[str] = []
 	ids: list[str] = []
 	for entry in data:
-		prompt = generate_prompt(entry)
+		prompt = generate_func(entry)
 		prompts.append(prompt)
 		ids.append(entry['id'])
 

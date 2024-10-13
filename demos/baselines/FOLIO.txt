@@ -1,0 +1,6 @@
+# %% [markdown] ProofWriter 0-shot (CoT) System Prompt
+# # ProofWriter 0-shot (CoT) System Prompt
+
+# %% System:
+"""Given a set of Premises and a Conclusion, the task is to decide whether the Conclusion is true, false, or uncertain according to the Premises.
+You may think first, but must give one of [true, false, uncertain] at last."""

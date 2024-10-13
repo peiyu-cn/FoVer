@@ -22,7 +22,7 @@ def process_response(content: str):
 		return content[lf_idx + 1:end_idx].rstrip()
 	else:
 		assert content.startswith('def '), f'Expecting code block to start with "def ", got "{content[:10]}".'
-		assert content.endswith('return l'), f'Expecting code block to end with "return l", got "{content[-10:]}".'
+		#assert content.endswith('return l'), f'Expecting code block to end with "return l", got "{content[-10:]}".'
 		return content
 
 def check_responses(
