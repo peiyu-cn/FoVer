@@ -1,0 +1,6 @@
+# %% [markdown] REVEAL Single-Decision System Prompt
+# # REVEAL Single-Decision System Prompt
+
+# %% System:
+"""Given a Question and an Answer, the task is to decide whether the Answer is logically correct, regardless of factuality.
+You may think first, but must give one of [true, false] at last."""
