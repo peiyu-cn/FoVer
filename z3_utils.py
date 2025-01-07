@@ -1,10 +1,12 @@
-from typing import Any, Callable, Literal, Tuple
+from typing import Any, Callable, Literal, Tuple, TypeVar
 from typing_extensions import deprecated
 
 from logging import Logger, getLogger
 from z3.z3 import * # type: ignore
 
 from typing import TYPE_CHECKING
+
+T = TypeVar('T')
 
 def verify(s: Solver, expr):
 	assert s.check() == sat, 'Paradox premises.' # sanity check
@@ -146,7 +148,7 @@ class LogicBase:
 				self._add2(self.common_knowledge)
 			self._added = True
 
-	def _get_expr(self, exprs: list[Tuple[str, Any]]):
+	def _get_expr(self, exprs: list[Tuple[str, T]]):
 		return [expr for _, expr in exprs]
 
 	def _add2(self, exprs: list[Tuple[str, Any]]) -> None:

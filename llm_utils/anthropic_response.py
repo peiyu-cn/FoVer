@@ -1,9 +1,10 @@
 from typing import Callable, Optional
 
 import json
-from z3.z3 import CheckSatResult
 
-from .response import process_response, check_responses
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+	from z3.z3 import CheckSatResult
 
 def get_assistant_content(result: str, prefill: Optional[str] = None):
 	j = json.loads(result)
@@ -30,12 +31,14 @@ def get_assistant_batch_content(
 
 def check_batch_response(
 	response_file_path: str,
-	check_cb: Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]],
+	check_cb: "Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]]",
 	prefill: Optional[str] = None,
 	use_definitions: bool = True,
 	use_common_knowledge: bool = True,
 	sync: bool = False,
 ):
+	from .response import process_response, check_responses
+
 	with open(response_file_path, 'r', encoding='utf-8') as file:
 		responses = [
 			process_response(get_assistant_content(line, prefill))
