@@ -13,22 +13,23 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
 	from typing import NotRequired
 
+	from anthropic.types.beta.beta_message import BetaMessage
 	from anthropic.types.beta.beta_message_param import BetaMessageParam
 	from anthropic.types.beta.beta_text_block_param import BetaTextBlockParam
 	from anthropic.types.beta.messages.batch_create_params import Request
 	from anthropic.types.beta.messages.beta_message_batch_individual_response import BetaMessageBatchIndividualResponse
 	from anthropic.types.beta.message_create_params import MessageCreateParamsNonStreaming
-	from anthropic.types.beta.prompt_caching import PromptCachingBetaMessage, PromptCachingBetaMessageParam, PromptCachingBetaTextBlockParam
 
 	from .prompting import Message
 
-	class MessageCreateParameters(MessageCreateParamsNonStreaming):
+	class MessageCreateParameters(MessageCreateParamsNonStreaming, total=False):
 		messages: NotRequired[Iterable[BetaMessageParam]] # type: ignore
 		max_tokens: NotRequired[int] # type: ignore
+		model: NotRequired[str] # type: ignore
 
 def _get_anthropic_messages(
 	demos: "Sequence[Sequence[Message]]",
-) -> "list[PromptCachingBetaMessageParam]":
+) -> "list[BetaMessageParam]":
 	messages: "Sequence[Message]" = []
 
 	for message_pair in demos:
@@ -43,7 +44,7 @@ def _get_anthropic_messages(
 	assert last["role"] == 'assistant'
 	_content = last["content"]
 	assert isinstance(_content, str)
-	content: "PromptCachingBetaTextBlockParam" = {
+	content: "BetaTextBlockParam" = {
 		"type": 'text',
 		"text": _content,
 		"cache_control": {
@@ -113,12 +114,12 @@ def get_requests(
 
 def get_prompts(
 	user_prompts: "Sequence[str]",
-	msgs: "Sequence[PromptCachingBetaMessageParam]",
+	msgs: "Sequence[BetaMessageParam]",
 	prefill: Optional[str] = None,
 ):
-	prompts: "list[list[PromptCachingBetaMessageParam]]" = []
+	prompts: "list[list[BetaMessageParam]]" = []
 	for user in user_prompts:
-		prompt: "list[PromptCachingBetaMessageParam]" = [
+		prompt: "list[BetaMessageParam]" = [
 			*msgs,
 			{
 				"role": 'user',
@@ -151,7 +152,7 @@ def generate_batch(
 ):
 	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
 	msgs = _get_anthropic_messages(messages)
-	prompts: "list[list[BetaMessageParam]]" = get_prompts(user_prompts, msgs, prefill) # type: ignore
+	prompts = get_prompts(user_prompts, msgs, prefill)
 
 	top = base_id + min(size, len(prompts) - base_id)
 	requests = get_requests(
@@ -238,12 +239,12 @@ async def batch_request_async(
 ):
 	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
 	msgs = _get_anthropic_messages(messages)
-	prompts: "list[list[PromptCachingBetaMessageParam]]" = get_prompts(user_prompts, msgs, prefill) # type: ignore
+	prompts = get_prompts(user_prompts, msgs, prefill)
 
 	client = _get_anthropic_client(asynchronous=True)
 
-	coros: "list[Coroutine[Any, Any, PromptCachingBetaMessage]]" = [
-		client.beta.prompt_caching.messages.create(
+	coros: "list[Coroutine[Any, Any, BetaMessage]]" = [
+		client.beta.messages.create(
 			max_tokens=max_tokens,
 			messages=message,
 			model=model,
