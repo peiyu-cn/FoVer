@@ -97,19 +97,20 @@ def get_requests(
 	custom_ids: Optional[Sequence[str]] = None,
 	base_id = 0,
 ) -> "list[Request]":
+	l = len(params)
 	if custom_ids:
-		assert len(custom_ids) == len(params)
+		assert len(custom_ids) == l
 		prefixes = [
 			f"{job_prefix}-{i + base_id :04}({custom_id})"
 			for i, custom_id in enumerate(custom_ids)
 		]
 	else:
-		prefixes = [f"{job_prefix}-{i + base_id :04}" for i in range(len(params))]
+		prefixes = [f"{job_prefix}-{i + base_id :04}" for i in range(l)]
 	return [
 		{
 			"custom_id": prefixes[i],
 			"params": params[i],
-		} for i in range(len(params))
+		} for i in range(l)
 	]
 
 def get_prompts(
@@ -183,7 +184,7 @@ def generate_batch(
 
 	outfile = f'data/anthropic_batch_request/{job_prefix}-{base_id:04}-{top:04}.jsonl'
 	with open(outfile, 'w', encoding='utf-8') as file:
-		for request in requests[base_id:top]:
+		for request in requests:
 			print(json.dumps(request), file=file)
 
 	set_file_read_only(outfile)

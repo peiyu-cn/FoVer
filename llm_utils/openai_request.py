@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 	from openai.types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 	from openai.types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
-	class OpenAIRequestBody(TypedDict):
+	class OpenAIRequestBody(TypedDict, total=False):
 		messages: Iterable[ChatCompletionMessageParam]
 		model: Union[str, ChatModel]
 		frequency_penalty: NotRequired[float]
