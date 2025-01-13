@@ -18,7 +18,7 @@ def get_assistant_content(result: str, prefill: Optional[str] = None):
 def get_assistant_batch_content(
 	result: str,
 	prefill: Optional[str] = None,
-):
+) -> str:
 	j = json.loads(result)
 	_result: dict = j['result']
 	message: dict = _result['message']
@@ -32,6 +32,7 @@ def get_assistant_batch_content(
 def check_batch_response(
 	response_file_path: str,
 	check_cb: "Callable[[int, list[bool | CheckSatResult]], tuple[int, int, int, int]]",
+	batch: bool = False,
 	prefill: Optional[str] = None,
 	use_definitions: bool = True,
 	use_common_knowledge: bool = True,
@@ -39,9 +40,11 @@ def check_batch_response(
 ):
 	from .response import process_response, check_responses
 
+	get_content = get_assistant_batch_content if batch else get_assistant_content
+
 	with open(response_file_path, 'r', encoding='utf-8') as file:
 		responses = [
-			process_response(get_assistant_content(line, prefill))
+			process_response(get_content(line, prefill))
 			for line in file
 		]
 	return check_responses(responses, check_cb, use_definitions, use_common_knowledge, sync)

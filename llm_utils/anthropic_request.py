@@ -212,6 +212,22 @@ def check_batch(
 	r = client.beta.messages.batches.retrieve(batch_id)
 	return r.processing_status
 
+async def wait_batch(
+	batch_id: str,
+):
+	client = _get_anthropic_client(use_cache=False, asynchronous=True)
+	r = await client.beta.messages.batches.retrieve(batch_id)
+	while r.processing_status != 'ended':
+		await asyncio.sleep(30)
+		r = await client.beta.messages.batches.retrieve(batch_id)
+	return r
+
+def cancel_batch(
+	batch_id: str,
+):
+	client = _get_anthropic_client(use_cache=False)
+	return client.beta.messages.batches.cancel(batch_id)
+
 def save_batch_results(
 	batch_id: str,
 	output_file: str,
@@ -225,6 +241,45 @@ def save_batch_results(
 	with open(output_file, 'w', encoding='utf-8') as file:
 		for result in results:
 			print(result.to_json(indent=None), file=file)
+
+async def hit_cache(
+	system: str,
+	messages: "Sequence[Sequence[Message]]",
+	model: Literal['claude-3-5-sonnet-20240620'] = 'claude-3-5-sonnet-20240620',
+	*,
+	interval: int = 240,
+):
+	msgs = _get_anthropic_messages(messages)
+	sys: "Iterable[BetaTextBlockParam]" = [
+		{
+			"type": 'text',
+			"text": system,
+			"cache_control": {
+				"type": 'ephemeral'
+			},
+		}
+	]
+
+	client = _get_anthropic_client(use_cache=False, asynchronous=True)
+
+	i = 0
+	while True:
+		try:
+			await client.beta.messages.create(
+				model=model,
+				system=sys,
+				messages=msgs,
+				max_tokens=1,
+				temperature=0,
+				top_p=1,
+			)
+			i += 1
+			print(f'Hit {i}')
+			await asyncio.sleep(interval)
+		except KeyboardInterrupt:
+			break
+
+	print(f'Break. Hit {i} times.')
 
 async def batch_request_async(
 	user_prompts: "Sequence[str]",
