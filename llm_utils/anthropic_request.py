@@ -144,6 +144,7 @@ def generate_batch(
 	model: Literal['claude-3-5-sonnet-20240620'],
 	demos_path = 'demos/common.py',
 	additional_path: Optional[str] = None,
+	replace: bool = False,
 	custom_ids: Optional[Sequence[str]] = None,
 	prefill: Optional[str] = None,
 	max_tokens: int = 2048,
@@ -151,7 +152,7 @@ def generate_batch(
 	top_p: float = 1,
 	**kwargs: "Unpack[MessageCreateParameters]", # type: ignore
 ):
-	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
+	system, messages = get_demos(file_path=demos_path, additional_path=additional_path, replace=replace)
 	msgs = _get_anthropic_messages(messages)
 	prompts = get_prompts(user_prompts, msgs, prefill)
 
@@ -231,6 +232,7 @@ async def batch_request_async(
 	output_file: str,
 	demos_path = 'demos/common.py',
 	additional_path: Optional[str] = None,
+	replace: bool = False,
 	max_tokens: int = 2048,
 	temperature: float = 0,
 	top_p: float = 1,
@@ -238,7 +240,7 @@ async def batch_request_async(
 	max_concurrency: int = 2,
 	**kwargs,
 ):
-	system, messages = get_demos(file_path=demos_path, additional_path=additional_path)
+	system, messages = get_demos(file_path=demos_path, additional_path=additional_path, replace=replace)
 	msgs = _get_anthropic_messages(messages)
 	prompts = get_prompts(user_prompts, msgs, prefill)
 

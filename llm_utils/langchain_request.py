@@ -15,11 +15,12 @@ def batch_request(
 	user_prompts: list[str],
 	model: BaseChatModel,
 	additional_path: Optional[str] = None,
+	replace: bool = False,
 	prefill: Optional[str] = None,
 	max_concurrency: int = 8,
 	**retry_kwargs,
 ):
-	system, messages = get_demos(additional_path=additional_path)
+	system, messages = get_demos(additional_path=additional_path, replace=replace)
 	msgs = get_langchain_template(system, messages, prefill)
 
 	chain = ChatPromptTemplate.from_messages(msgs) | model | StrOutputParser()

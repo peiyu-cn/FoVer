@@ -109,13 +109,14 @@ def generate_batch(
 	model_name = 'gpt-4o-2024-08-06',
 	demos_path = 'demos/common.py',
 	additional_path: Optional[str] = None,
+	replace = False,
 	custom_ids: Optional[Sequence[str]] = None,
 	endpoint = '/v1/chat/completions',
 	max_tokens = 2048,
 	temperature = 0,
 	top_p = 1,
 ):
-	demos = get_demos(demos_path, additional_path)
+	demos = get_demos(demos_path, additional_path, replace)
 	system, _demos = demos
 
 	bodies: "list[OpenAIRequestBody]" = []

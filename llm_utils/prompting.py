@@ -27,7 +27,7 @@ def _parse_demo(
 
 	rest = assistant_text[len(assis):]
 	return_idx = rest.find(retur)
-	assistant = rest[:return_idx + len(retur) + 2].lstrip()
+	assistant = rest[:return_idx + len(retur)].lstrip()
 
 	return [
 		{
@@ -43,6 +43,7 @@ def _parse_demo(
 def get_demos(
 	file_path = 'demos/common.py',
 	additional_path: Optional[str] = None,
+	replace = False,
 ):
 	# Read the file
 	with open(file_path, 'r', encoding='utf-8') as file:
@@ -63,7 +64,10 @@ def get_demos(
 		with open(additional_path, 'r', encoding='utf-8') as file:
 			additional_content = file.read()
 		additional_demos = additional_content.split('# %% demo')
-		demos.extend(additional_demos[1:])
+		if replace:
+			demos = demos[:1] + additional_demos[1:]
+		else:
+			demos.extend(additional_demos[1:])
 
 	demos_message_pairs = [_parse_demo(demo) for demo in demos[1:]]
 
