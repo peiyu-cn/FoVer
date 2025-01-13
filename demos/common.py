@@ -104,7 +104,7 @@ def president_of_us_when_superconductivity_was_discovered_was_woodrowwilson(**kw
 	Person = DeclareSort('Person')
 	Region = DeclareSort('Region')
 	Event = DeclareSort('Event')
-	# I shall use thease identifiers for placeholders: Newthing: n*, Person: p*, Region: r*, Event: e*; Int: i*, Bool: b*.
+	# I shall use these identifiers for placeholders: Newthing: n*, Person: p*, Region: r*, Event: e*; Int: i*, Bool: b*.
 
 	# Define functions with usage comments.
 	n_discoverer__person = Function('discoverer', Newthing, Person) # (Newthing) -> Person, usage: n_discoverer__person(Newthing) = Person.
@@ -231,7 +231,7 @@ def multiple_targets_mark_either(**kwargs) -> Logic: # The function name does no
 	Person = DeclareSort('Person')
 	Place = DeclareSort('Place')
 	Time = DeclareSort('Time')
-	# I shall use thease identifiers for placeholders: Person: p*, Place: pl*, Time: t*; Bool: b*.
+	# I shall use these identifiers for placeholders: Person: p*, Place: pl*, Time: t*; Bool: b*.
 
 	# Define functions with usage comments.
 	p_play_in_pl_when_t = Function('play-in-when', Person, Place, Time, BoolSort()) # (Person, Place, Time) -> Bool, usage: p_play_in_pl_when_t(Person, Place, Time).
@@ -347,7 +347,7 @@ def a_red_b_blue_c_yellow(**kwargs) -> Logic: # This function name exactly match
 	# Define types.
 	Ball, (a, b, c) = EnumSort('Ball', ['A', 'B', 'C']) # We must be very careful when using EnumSort. I can use here and I shall use here because all claims in text about balls are about A, B, C, i.e., placeholders b* that will be used below will refer only to A, B, C (Exists b1 means one of A, B, C; ForAll b1 means all A, B, C).
 	Color = DeclareSort('Color')
-	# I shall use thease identifiers for placeholders: Ball: b*, Color: c*; Int: i*.
+	# I shall use these identifiers for placeholders: Ball: b*, Color: c*; Int: i*.
 
 	# Define functions with usage comments.
 	b__color = Function('ball-color', Ball, Color) # (Ball) -> Color, usage: b__color(Ball) = Color.
