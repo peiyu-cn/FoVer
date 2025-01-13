@@ -7,6 +7,7 @@ from z3.z3 import * # type: ignore
 from typing import TYPE_CHECKING
 
 T = TypeVar('T')
+LABEL_PREFIX = 'DEFLBLPREF_'
 
 def verify(s: Solver, expr):
 	assert s.check() == sat, 'Paradox premises.' # sanity check
@@ -44,6 +45,7 @@ class LogicBase:
 	def __init__(self,
 		use_definitions = True,
 		use_common_knowledge = True,
+		timeout = 5000,
 		translate = False,
 		logger: Logger = getLogger(__name__),
 		**kwargs
@@ -51,6 +53,8 @@ class LogicBase:
 		self.context = kwargs.get("context", None)# or Context()
 		# kwargs["ctx"] = self.context
 		self.s = Solver(**kwargs)
+		self.s.set('timeout', timeout)
+		self.s.set('unsat_core', True)
 		self.use_definitions = use_definitions
 		self.use_common_knowledge = use_common_knowledge
 		if not translate:
@@ -140,12 +144,42 @@ class LogicBase:
 		"""
 		Add the premises to the solver.
 		"""
+	#	if not self._added:
+	#		if self.use_definitions:
+	#			self._add2(self.definitions)
+	#		self._add2(self.claims)
+	#		if self.use_common_knowledge:
+	#			self._add2(self.common_knowledge)
+	#		self._added = True
+
 		if not self._added:
-			if self.use_definitions:
-				self._add2(self.definitions)
 			self._add2(self.claims)
+			assert self.s.check() == sat, 'Paradox claims.'
+			self.s.push()
+
+			defs: dict[str, tuple[int, Expr]] = dict()
+			for i, (desc, expr) in enumerate(self.definitions):
+				label = f'{LABEL_PREFIX}{i}'
+				defs[label] = i, expr
+				self.s.assert_and_track(expr, label)
+			if self.s.check() == unsat:
+				unsat_core = self.s.unsat_core()
+				unsat_core_str = [str(label) for label in unsat_core]
+				unsat_indices = [int(label[len(LABEL_PREFIX):]) for label in unsat_core_str]
+				self._logger.warning('Inconsistent definitions %s.', unsat_indices)
+				self.s.pop()
+				for label, (i, expr) in defs.items():
+					if label not in unsat_core_str:
+						self.s.add(expr)
+				for label in unsat_core_str:
+					i, expr = defs[label]
+					if self.s.check(expr) == sat:
+						self._logger.info('Readded definition #%d.', i)
+						self.s.add(expr)
+
 			if self.use_common_knowledge:
 				self._add2(self.common_knowledge)
+
 			self._added = True
 
 	def _get_expr(self, exprs: list[Tuple[str, T]]):

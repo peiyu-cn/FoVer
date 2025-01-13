@@ -19,7 +19,150 @@ def get_function_name(code: str) -> str:
 	assert isinstance(node, ast.FunctionDef), f'Expected FunctionDef, but got {type(node)}'
 	return node.name
 
+import re
+from typing import List, Tuple, Match
+
+import re
+from typing import List, Tuple, Match, Optional
+
+class AssertionProcessor:
+	@staticmethod
+	def find_assertions_list(p: Literal['claims', 'assertions'], text: str) -> Optional[Tuple[int, int, str]]:
+		# 使用正则表达式找到l.assertions的开始
+		match = re.search(fr'l\.{p}\s*=\s*\[', text)
+		if not match:
+			return None
+		
+		start_pos = match.end()
+		# 手动追踪嵌套的方括号
+		bracket_level = 1
+		for i in range(start_pos, len(text)):
+			if text[i] == '[':
+				bracket_level += 1
+			elif text[i] == ']':
+				bracket_level -= 1
+				if bracket_level == 0:
+					# 找到匹配的闭合方括号
+					return (match.start(), i + 1, text[start_pos:i])
+		
+		return None
+
+	@staticmethod
+	def parse_assertions(assertions_str: str) -> List[Tuple[int, int, str, str]]:
+		results = []
+		
+		# 跟踪圆括号和方括号
+		round_level = 0
+		square_level = 0
+		current_tuple = ""
+		start_pos = 0
+		
+		i = 0
+		while i < len(assertions_str):
+			char = assertions_str[i]
+			
+			if char == '(':
+				if round_level == 0:
+					start_pos = i
+				round_level += 1
+			elif char == ')':
+				round_level -= 1
+				if round_level == 0:
+					# 找到完整的元组
+					tuple_content = assertions_str[start_pos+1:i]
+					# 分离字符串和表达式部分
+					try:
+						# 寻找第一个非转义的引号结束位置
+						in_escape = False
+						quote_end = -1
+						for j, c in enumerate(tuple_content):
+							if c == '\\':
+								in_escape = not in_escape
+							elif c == '"' and not in_escape:
+								if tuple_content[j:j+2] == '",':
+									quote_end = j
+									break
+							else:
+								in_escape = False
+						
+						if quote_end != -1:
+							string_part = tuple_content[:quote_end+1]
+							expr_part = tuple_content[quote_end+2:].strip()
+							results.append((start_pos, i+1, string_part, expr_part))
+					except ValueError:
+						pass
+			elif char == '[':
+				square_level += 1
+			elif char == ']':
+				square_level -= 1
+				
+			i += 1
+		
+		return results
+
+	@staticmethod
+	def process_tuple(string_part: str, expr_part: str) -> Tuple[str, str]:
+		# 计算string_part中的either数量
+		either_count = len(re.findall(r'\b[Ee]ither\b', string_part))
+		
+		# 计算expr_part中的Xor数量
+		xor_count = expr_part.count('Xor')
+		
+		if xor_count < either_count:
+			# 找到最后一个Xor后的Or
+			last_xor_index = expr_part.rfind('Xor')
+			if last_xor_index == -1:
+				last_xor_index = 0
+			remaining_expr = expr_part[last_xor_index:]
+			or_matches = list(re.finditer(r'\bOr\b', remaining_expr))
+			
+			# 只替换需要的数量
+			replacements_needed = min(either_count - xor_count, len(or_matches))
+			
+			# 从后往前替换，以避免位置变化
+			modified_expr = list(expr_part)
+			for i in range(replacements_needed):
+				or_match = or_matches[i]
+				absolute_pos = last_xor_index + or_match.start()
+				modified_expr[absolute_pos:absolute_pos+2] = 'Xor'
+			
+				expr_part = ''.join(modified_expr)
+		
+		return string_part, expr_part
+
+	@staticmethod
+	def process_text(p: Literal['claims', 'assertions'], text: str) -> str:
+		# 找到assertions列表
+		assertions_info = AssertionProcessor.find_assertions_list(p, text)
+		if not assertions_info:
+			return text
+		
+		list_start, list_end, assertions_str = assertions_info
+		tuples = AssertionProcessor.parse_assertions(assertions_str)
+		
+		# 从后往前处理每个元组，以避免位置变化影响
+		modified_text = list(text)
+		for start_pos, end_pos, string_part, expr_part in reversed(tuples):
+			processed_string, processed_expr = AssertionProcessor.process_tuple(string_part, expr_part)
+			new_tuple = f"({processed_string}, {processed_expr})"
+			
+			# 计算在完整文本中的实际位置
+			actual_start = list_start + len(f'l.{p} = [') + start_pos
+			actual_end = list_start + len(f'l.{p} = [') + end_pos
+			modified_text[actual_start:actual_end] = new_tuple
+		
+		return ''.join(modified_text)
+
+	@staticmethod
+	def process_all(text: str) -> str:
+		text = AssertionProcessor.process_text('claims', text)
+		text = AssertionProcessor.process_text('assertions', text)
+		return text
+
 def _switch_sorts_context(code: str) -> str:
+	#code = re.sub(r'l.definitions = \[[^\[\]]*\]', 'l.definitions = []', code, flags=re.MULTILINE)
+	#code = re.sub(r'l.common_knowledge = \[[^\[\]]*\]', 'l.common_knowledge = []', code, flags=re.MULTILINE)
+	#code = AssertionProcessor.process_all(code)
 	return code
 	#return re.sub(r"EnumSort\(([^\(]+)\)", r"EnumSort(\1, ctx=l.context)", code, flags=re.MULTILINE)
 	#code = _switch_sort_context('DeclareSort', code)
@@ -58,7 +201,7 @@ def execute_codes(
 	use_definitions: bool = True,
 	use_common_knowledge: bool = True,
 	translate: bool = False,
-	timeout: Optional[float] = 5,
+	timeout: Optional[float] = 30,
 	sync: bool = False,
 ) -> "Iterable[Awaitable[tuple[Literal[True], list[bool | CheckSatResult]] | tuple[Literal[False], Exception]]]":
 	if sync:
