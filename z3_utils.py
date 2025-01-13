@@ -204,6 +204,9 @@ class Logic(LogicBase):
 	def assertions(self, value: list[Tuple[str, Any]]):
 		self._assertions = self._preprocess('assertions', value)
 		for i, assertion in enumerate(self._get_expr(self._assertions)):
+			if type(assertion) is bool:
+				self._logger.error('Assertion #%d (%s) is bool.', i, assertion)
+				assert False, 'Assertion should not be bool.'
 			if assertion in self._get_expr(self.definitions):
 				self._logger.error('Assertion #%d (%s) is inluded in definitions.', i, assertion)
 				assert not self.use_definitions, 'Definitions should not include assertions.'
