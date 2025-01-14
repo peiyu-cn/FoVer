@@ -157,25 +157,26 @@ class LogicBase:
 			assert self.s.check() == sat, 'Paradox claims.'
 			self.s.push()
 
-			defs: dict[str, tuple[int, Expr]] = dict()
-			for i, (desc, expr) in enumerate(self.definitions):
-				label = f'{LABEL_PREFIX}{i}'
-				defs[label] = i, expr
-				self.s.assert_and_track(expr, label)
-			if self.s.check() == unsat:
-				unsat_core = self.s.unsat_core()
-				unsat_core_str = [str(label) for label in unsat_core]
-				unsat_indices = [int(label[len(LABEL_PREFIX):]) for label in unsat_core_str]
-				self._logger.warning('Inconsistent definitions %s.', unsat_indices)
-				self.s.pop()
-				for label, (i, expr) in defs.items():
-					if label not in unsat_core_str:
-						self.s.add(expr)
-				for label in unsat_core_str:
-					i, expr = defs[label]
-					if self.s.check(expr) == sat:
-						self._logger.info('Readded definition #%d.', i)
-						self.s.add(expr)
+			if self.use_definitions:
+				defs: dict[str, tuple[int, Expr]] = dict()
+				for i, (desc, expr) in enumerate(self.definitions):
+					label = f'{LABEL_PREFIX}{i}'
+					defs[label] = i, expr
+					self.s.assert_and_track(expr, label)
+				if self.s.check() == unsat:
+					unsat_core = self.s.unsat_core()
+					unsat_core_str = [str(label) for label in unsat_core]
+					unsat_indices = [int(label[len(LABEL_PREFIX):]) for label in unsat_core_str]
+					self._logger.warning('Inconsistent definitions %s.', unsat_indices)
+					self.s.pop()
+					for label, (i, expr) in defs.items():
+						if label not in unsat_core_str:
+							self.s.add(expr)
+					for label in unsat_core_str:
+						i, expr = defs[label]
+						if self.s.check(expr) == sat:
+							self._logger.info('Readded definition #%d.', i)
+							self.s.add(expr)
 
 			if self.use_common_knowledge:
 				self._add2(self.common_knowledge)
