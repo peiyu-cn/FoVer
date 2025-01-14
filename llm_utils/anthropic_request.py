@@ -29,36 +29,38 @@ if TYPE_CHECKING:
 
 def _get_anthropic_messages(
 	demos: "Sequence[Sequence[Message]]",
-) -> "list[BetaMessageParam]":
-	messages: "Sequence[Message]" = []
+) -> "Sequence[BetaMessageParam]":
+	messages: "Sequence[BetaMessageParam]" = []
 
 	for message_pair in demos:
 		for message in message_pair:
-			messages.append(message)
+			messages.append({
+				"role": message["role"],
+				"content": message["content"],
+			})
 
-	if len(messages) == 0:
+	l = len(messages)
+	if l == 0:
 		return []
 
-	last = messages[-1]
+	for i in range(0, l, 2):
+		if i >= 2 * 3:
+			break
+		j = -i - 1
+		assert messages[j]["role"] == 'assistant'
+		content = messages[j]["content"]
+		assert isinstance(content, str)
+		messages[j]["content"] = [
+			{
+				"type": 'text',
+				"text": content,
+				"cache_control": {
+					"type": 'ephemeral'
+				}
+			}
+		]
 
-	assert last["role"] == 'assistant'
-	_content = last["content"]
-	assert isinstance(_content, str)
-	content: "BetaTextBlockParam" = {
-		"type": 'text',
-		"text": _content,
-		"cache_control": {
-			"type": 'ephemeral'
-		}
-	}
-
-	return [
-		*messages[:-1], # type: ignore
-		{
-			"role": 'assistant',
-			"content": [content]
-		}
-	]
+	return messages
 
 @overload
 def _get_anthropic_client(
