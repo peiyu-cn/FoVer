@@ -109,7 +109,7 @@ def president_of_us_when_superconductivity_was_discovered_was_woodrowwilson(**kw
 	# Define functions with usage comments.
 	n_discoverer__person = Function('discoverer', Newthing, Person) # (Newthing) -> Person, usage: n_discoverer__person(Newthing) = Person.
 	p_is_president_of_r_in_i = Function('is-president-of-in', Person, Region, IntSort(), BoolSort()) # (Person, Region, Int) -> Bool, usage: p_is_president_of_r_in_i(Preson, Region, Int). # Person is president of Region from Int a to Int b means Person is president of Region in Int x (a <= x <= b).
-	president_of_r_when_e_happen__person = Function('president-of-when', Person, Region, Event, BoolSort()) # (Region, Event) -> Person, usage: president_of_r_when_e_happen__person(Region, Event) = Person.
+	president_of_r_when_e_happen__person = Function('president-of-when', Region, Event, Person) # (Region, Event) -> Person, usage: president_of_r_when_e_happen__person(Region, Event) = Person.
 	discover_n_as__event = Function('discover', Newthing, Event) # (Newthing) -> Event, usage: discover_n_as__event(Newthing) = Event.
 	e_happentime__int = Function('happentime', Event, IntSort()) # (Event) -> Int, usage: e_happentime__int(Event) = Int.
 
