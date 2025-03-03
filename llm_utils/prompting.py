@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 quote = '"""'
 assis = '## Assistant:'
 retur = 'return l'
+#retur = '</answer>'
 
 def _parse_demo(
 	demo: str,

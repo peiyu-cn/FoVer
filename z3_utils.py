@@ -10,7 +10,7 @@ T = TypeVar('T')
 LABEL_PREFIX = 'DEFLBLPREF_'
 
 def verify(s: Solver, expr):
-	assert s.check() == sat, 'Paradox premises.' # sanity check
+	assert s.check() != unsat, 'Paradox premises.' # sanity check
 
 	r1 = s.check(expr)
 	r2 = s.check(Not(expr))
