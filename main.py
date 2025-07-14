@@ -11,30 +11,37 @@ if TYPE_CHECKING:
 def openai_request():
 	from llm_utils.openai_request import generate_batch, submit_batch
 	#from dataset_utils.folio import generate_prompts
-	from dataset_utils.proofwriter import generate_prompts
-	#from dataset_utils.reveal import generate_prompts
+	#from dataset_utils.proofwriter import generate_prompts
+	from dataset_utils.reveal import generate_prompts
 
+	#prompts = generate_prompts('data/FOLIO/folio_v2_validation.jsonl')
 	#prompts = generate_prompts('data/FOLIO/folio_v2_validation_reshuffle_2.jsonl')
 	prompts, ids = generate_prompts(
-		'data/proofwriter/owa-baseline-test.jsonl',
+		#'data/proofwriter/owa-baseline-test.jsonl',
+		#'data/proofwriter/test-80.jsonl',
 		#'data/proofwriter/OWA/depth-5/meta-test.jsonl',
-		#'data/reveal/eval/musique_test.csv',
+		'data/reveal/eval/musique_test.csv',
 		#filter=lambda record: record['dataset'] == 'musique',
 		return_ids=True,
-		baseline=True,
+		#baseline=True,
 	)
 	outfile = generate_batch(
 		prompts,
 		0, 120,
-		'baseline-proofwriter-test-gpt4o0806',
+		#'baseline-proofwriter-test-80-cot-gpt4o0806',
 		#'z3py-3-shot-v24-reveal-musique-test-gpt4o0806',
 		#'z3py-3-shot-v24-proofwriter-owa5-test-gpt4o0806',
-		#'z3py-3-shot-v24-reveal-musique-gpt4o0806',
+		#'z3py-3-shot-v24-proofwriter-test-single-gpt4o0806',
+		#'z3py-3-shot-v24-folio-v14-val-all-gpt4o0806',
+		#'z3py-3-shot-v25-reveal-musique-gpt4o0806',
+		'z3py-3-shot-v24-reveal-musique-ablation-identifier-gpt4o0806',
 		'gpt-4o-2024-08-06',
-		demos_path='demos/baselines/proofwriter.txt',
+		#demos_path='demos/baselines/ProofWriter_CoT.txt',
+		demos_path='demos/ablations/identifier.py',
 		#additional_path='demos/folio.py',
+		#replace=True,
 		custom_ids=ids,
-		max_tokens=1024,
+		max_tokens=4096,
 	)
 	input('Press Enter to submit batch.')
 	submit_batch(outfile)
@@ -82,43 +89,49 @@ def langchain_request():
 def anthropic_request():
 	from llm_utils.anthropic_request import batch_request_async, generate_batch, submit_batch
 	#from dataset_utils.folio import generate_prompts
-	#from dataset_utils.proofwriter import generate_prompts
-	from dataset_utils.reveal import generate_prompts
+	from dataset_utils.proofwriter import generate_prompts
+	#from dataset_utils.reveal import generate_prompts
 
-	#prompts = generate_prompts()
+	#prompts = generate_prompts('data/FOLIO/folio_v2_validation.jsonl')
 	#prompts = generate_prompts('data/FOLIO/folio_v2_validation_reshuffle_2.jsonl')
 	prompts, ids = generate_prompts(
-		#'data/proofwriter/owa-baseline-test.jsonl',
+		'data/proofwriter/owa-baseline-test-80.jsonl',
+		#'data/proofwriter/test-80.jsonl',
 		#'data/proofwriter/OWA/depth-5/meta-test.jsonl',
-		'data/reveal/eval/musique_test.csv',
+		#'data/reveal/eval/musique_test.csv',
 		return_ids=True,
-		#baseline=True,
+		baseline=True,
 	)
 	prompts = prompts[0:120]
-	asyncio.run(batch_request_async(
-		prompts,
-		'claude-3-5-sonnet-20240620',
-		#'data/anthropic_response/baseline-reveal-strategyqa-test-claude35sonnet-0000-0120.jsonl',
-		'data/anthropic_response/z3py-3-shot-v24-reveal-musique-test-claude35sonnet-0000-0120.jsonl',
-		#demos_path='demos/baselines/reveal.txt',
-		#additional_path='demos/folio.py',
-		prefill='def',
-		max_tokens=4096,
-		max_concurrency=2,
-	))
+	#asyncio.run(batch_request_async(
+	#	prompts,
+	#	'claude-3-5-sonnet-20240620',
+	#	#'data/anthropic_response/baseline-reveal-strategyqa-test-claude35sonnet-0000-0120.jsonl',
+	#	#'data/anthropic_response/z3py-3-shot-v24-reveal-musique-test-claude35sonnet-0000-0120.jsonl',
+	#	'data/anthropic_response/z3py-3-shot-v24-folio-val-claude35sonnet-0120-0220.jsonl',
+	#	#demos_path='demos/baselines/reveal.txt',
+	#	#additional_path='demos/folio.py',
+	#	prefill='def',
+	#	max_tokens=4096,
+	#	max_concurrency=2,
+	#))
 
-	return
+	#return
 	requests = generate_batch(
 		prompts,
-		0, 120,
-		'baseline-folio-test-35sonnet',
+		0, 80,
+		#'baseline-proofwriter-test-80-cot-35sonnet',
+		#'baseline-folio-test-all-cot-35sonnet',
+		#'z3py-3-shot-v24-proofwriter-test-80-35sonnet',
+		'z3py-3-shot-v24-proofwriter-test-single-80-35sonnet',
+		#'z3py-3-shot-v24-folio-v14-val-35sonnet',
 		#'z3py-3-shot-v24-reveal-musique-test-35sonnet',
 		'claude-3-5-sonnet-20240620',
-		demos_path='demos/baselines/FOLIO.txt',
+		#demos_path='demos/baselines/ProofWriter_CoT.txt',
 		#additional_path='demos/folio.py',
 		#custom_ids=ids,
-		#prefill='def',
-		max_tokens=2048,
+		prefill='def',
+		max_tokens=4096,
 	)
 	input('Press Enter to submit batch.')
 	b = submit_batch(requests)
@@ -161,30 +174,35 @@ def openai_check(
 	s: Optional[str] = None,
 ):
 	from llm_utils.openai_response import check_batch_response
-	from dataset_utils.folio import check_result, get_data
+	#from dataset_utils.folio import check_result, get_data
 	#from dataset_utils.proofwriter import check_result, get_data
-	#from dataset_utils.reveal import check_result, get_data
+	from dataset_utils.reveal import check_result, get_data
 
-	#source = get_data()
-	source = get_data('data/FOLIO/folio_v2_validation_reshuffle_2.jsonl')
+	#source = get_data('data/FOLIO/folio_v2_validation.jsonl')
+	#source = get_data('data/FOLIO/folio_v2_validation_reshuffle_2.jsonl')
 	#source = get_data('data/proofwriter/OWA/depth-5/meta-test.jsonl')
-	#source = get_data('data/reveal/eval/strategyqa_test.csv')
-	#source = source[0:107]
+	#source = get_data('data/proofwriter/owa-baseline-test.jsonl')
+	#source = get_data('data/proofwriter/test-80.jsonl')
+	source = get_data('data/reveal/eval/strategyqa_test.csv')
+	#source = source[0:120]
 
 	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
-		'data/batch_response/z3py-3-shot-v24-folio-val-rr-gpt4o0806-0000-0107.jsonl',
+		#'data/batch_response/z3py-3-shot-v24-folio-val-gpt4o0806-0000-0203.jsonl',
+		#'data/batch_response/z3py-3-shot-v24-folio-val-rr-gpt4o0806-0000-0107.jsonl',
+		#'data/batch_response/z3py-3-shot-v24-folio-v14-val-all-gpt4o0806-0000-0203.jsonl',
 		#'data/batch_response/z3py-3-shot-v24-proofwriter-owa5-test-gpt4o0806-0000-0120.jsonl',
-		#'data/batch_response/z3py-3-shot-v24-reveal-strategyqa-test-gpt4o0806-0000-0120.jsonl',
+		#'data/batch_response/z3py-3-shot-v24-proofwriter-test-single-gpt4o0806-0000-0120.jsonl',
+		'data/batch_response/z3py-3-shot-v24-reveal-strategyqa-test-gpt4o0806-0000-0120.jsonl',
 		lambda i, results: check_result(results, source[i]),
 		#lambda i, results: check_result(results, source[i], allow_unknown=True),
 		#use_definitions=False,
 		#use_common_knowledge=False,
-		#sync=True,
+		sync=True,
 	)
-	print([
-		data['label']
-		for data in source
-	])
+	#print([
+	#	data['label']
+	#	for data in source
+	#])
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
 def langchain_check():
@@ -213,21 +231,29 @@ def anthropic_check():
 	#from dataset_utils.proofwriter import check_result, get_data
 	from dataset_utils.reveal import check_result, get_data
 
-	#source = get_data()
+	#source = get_data('data/FOLIO/folio_v2_validation.jsonl')
 	#source = get_data('data/FOLIO/folio_v2_validation_reshuffle_2.jsonl')
 	#source = get_data('data/proofwriter/OWA/depth-5/meta-test.jsonl')
+	#source = get_data('data/proofwriter/owa-baseline-test-80.jsonl')
+	#source = get_data('data/proofwriter/test-80.jsonl')
 	source = get_data('data/reveal/eval/musique_test.csv')
-	#source = source[0:20]
+	#source = source[0:120]
 
 	correct, wrong, llm_failed, z3_failed, total = check_batch_response(
+		#'data/anthropic_response/z3py-3-shot-v24-folio-val-claude35sonnet-0000-0120.jsonl',
 		#'data/anthropic_response/z3py-3-shot-v24-folio-val-rr-claude35sonnet-0000-0107.jsonl',
+		#'data/anthropic_batch_response/z3py-3-shot-v24-folio-v14-val-35sonnet-0000-0203.jsonl',
 		#'data/anthropic_response/z3py-3-shot-v24-proofwriter-owa5-test-claude35sonnet-0000-0120.jsonl',
+		#'data/anthropic_batch_response/z3py-3-shot-v24-proofwriter-test-80-single-35sonnet-0000-0080.jsonl',
+		#'data/anthropic_batch_response/z3py-3-shot-v24-proofwriter-test-80-35sonnet-0000-0080.jsonl',
 		'data/anthropic_response/z3py-3-shot-v24-reveal-musique-test-claude35sonnet-0000-0120.jsonl',
 		lambda i, results: check_result(results, source[i]),
 		#lambda i, results: check_result(results, source[i], allow_unknown=True),
+		#batch=True,
 		prefill='def',
 		#use_definitions=False,
 		#use_common_knowledge=False,
+		sync=True,
 	)
 	print(f'Correct: {correct}, Wrong: {wrong}, LLM failed: {llm_failed}, Z3 failed: {z3_failed}, Total: {total}')
 
@@ -279,6 +305,7 @@ if __name__ == '__main__':
 
 	exit(0)
 
+if False:
 	def _get_keys(parser: ArgumentParser):
 		return {action.dest for action in parser._actions if action.dest != 'help'}
 

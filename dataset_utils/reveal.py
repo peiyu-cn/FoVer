@@ -13,6 +13,8 @@ class RevealRecord(TypedDict):
 	question: str
 	full_answer: str
 	answer_is_logically_correct: bool
+	answer_is_fully_attributable: bool
+	answer_is_fully_attributable_and_correct: bool
 
 def get_data(
 	data_path = 'data/reveal/eval/reveal_eval.csv',
