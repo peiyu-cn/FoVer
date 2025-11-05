@@ -1,0 +1,4 @@
+# Only the main requirement is listed here.
+# You may need to install other packages according to error messages.
+
+z3-solver==4.13.0.0

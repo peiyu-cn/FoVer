@@ -1,6 +1,6 @@
 [submodule "data/reveal"]
 	path = data/reveal
-	url = git@hf.co:datasets/google/reveal
+	url = git@hf.co:datasets/peiyu-cn/FoVer-Data-Reveal
 [submodule "data/FOLIO"]
 	path = data/FOLIO
 	url = git@hf.co:datasets/yale-nlp/FOLIO

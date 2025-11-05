@@ -1,5 +1,7 @@
-private/
+private/**
 cache/
+
+!README.md
 
 # Do not check Jupyter Notebooks. Manually add them if needed.
 **.ipynb
